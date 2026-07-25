@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Agentim — Your personal AI organization</title>
+<meta name="description" content="Agentim gives every person and company a team of specialized AI agents. Secure by default. Useful in minutes. Calm by design." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='5' fill='%230E0E10'/%3E%3Crect x='5' y='5' width='6' height='6' rx='1.5' fill='%234C86F5'/%3E%3Crect x='5' y='13' width='10' height='2.5' rx='1.25' fill='%23B4B4BB'/%3E%3Crect x='5' y='17' width='7' height='2.5' rx='1.25' fill='%2382828B'/%3E%3C/svg%3E" />
+<style>
+:root {
+  --ink:#0A0A0B;--ink-secondary:#38383D;--muted:#6E6E76;--muted-soft:#9B9BA3;
+  --border:#E6E6E9;--border-strong:#D2D2D7;
+  --surface-sunken:#FAFAFA;--surface:#FFFFFF;--surface-raised:#FFFFFF;--surface-hover:#F4F4F5;
+  --accent:#2C6BED;--accent-hover:#1F58D6;--accent-pressed:#1A4BC0;--accent-subtle:#EAF1FE;--accent-ring:rgba(44,107,237,0.40);
+  --success:#1F9D63;--warning:#B8791A;--danger:#D23A3A;
+  --font-sans:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --font-mono:"Geist Mono","JetBrains Mono",ui-monospace,"SF Mono",monospace;
+  --radius-xs:4px;--radius-sm:6px;--radius-md:10px;--radius-lg:14px;--radius-full:999px;
+  --shadow-sm:0 1px 3px 0 rgba(10,10,11,0.06),0 1px 2px -1px rgba(10,10,11,0.05);
+  --shadow-md:0 4px 12px -2px rgba(10,10,11,0.08),0 2px 6px -2px rgba(10,10,11,0.05);
+  --shadow-lg:0 12px 32px -8px rgba(10,10,11,0.12),0 4px 12px -4px rgba(10,10,11,0.06);
+  --focus-ring:0 0 0 3px var(--accent-ring);
+  --ease-standard:cubic-bezier(0.2,0,0,1);
+  --measure:68ch;
+}
+[data-theme="dark"] {
+  --ink:#F5F5F6;--ink-secondary:#B4B4BB;--muted:#82828B;--muted-soft:#5A5A62;
+  --border:#232326;--border-strong:#323236;
+  --surface-sunken:#08080A;--surface:#0E0E10;--surface-raised:#161618;--surface-hover:#1A1A1D;
+  --accent:#4C86F5;--accent-hover:#5E93F7;--accent-subtle:#12203D;--accent-ring:rgba(76,134,245,0.35);
+  --shadow-sm:0 1px 3px 0 rgba(0,0,0,0.40);
+  --shadow-md:0 4px 12px -2px rgba(0,0,0,0.45);
+  --shadow-lg:0 12px 32px -8px rgba(0,0,0,0.55);
+}
+* { box-sizing:border-box; margin:0; padding:0; }
+html { scroll-behavior:smooth; }
+body {
+  font-family:var(--font-sans); background:var(--surface-sunken); color:var(--ink);
+  -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+  line-height:1.5; letter-spacing:-0.006em;
+}
+::selection { background:var(--accent-subtle); color:var(--accent); }
+a { color:inherit; text-decoration:none; }
+.wrap { max-width:1080px; margin:0 auto; padding:0 24px; }
+
+/* Nav */
+nav {
+  position:sticky; top:0; z-index:50;
+  backdrop-filter:saturate(180%) blur(12px);
+  background:color-mix(in srgb, var(--surface-sunken) 78%, transparent);
+  border-bottom:1px solid var(--border);
+}
+.nav-in { display:flex; align-items:center; justify-content:space-between; height:60px; }
+.brand { display:flex; align-items:center; gap:9px; font-weight:600; font-size:17px; letter-spacing:-0.02em; }
+.brand svg { display:block; }
+.brand .tld { color:var(--muted); }
+.nav-actions { display:flex; align-items:center; gap:8px; }
+
+/* Buttons */
+.btn {
+  display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  font-family:inherit; font-size:14px; font-weight:500; letter-spacing:-0.006em;
+  border-radius:var(--radius-sm); padding:10px 16px; cursor:pointer;
+  border:1px solid transparent; transition:background var(--dur,160ms) var(--ease-standard), border-color 160ms, transform 160ms, box-shadow 160ms;
+  white-space:nowrap;
+}
+.btn:focus-visible { outline:none; box-shadow:var(--focus-ring); }
+.btn-primary { background:var(--accent); color:#fff; }
+.btn-primary:hover { background:var(--accent-hover); }
+.btn-primary:active { transform:translateY(1px); }
+.btn-secondary { background:var(--surface); border-color:var(--border-strong); color:var(--ink); }
+.btn-secondary:hover { background:var(--surface-hover); }
+.btn-ghost { background:transparent; color:var(--ink-secondary); padding:8px 12px; }
+.btn-ghost:hover { color:var(--ink); background:var(--surface-hover); }
+.btn-lg { padding:13px 22px; font-size:15px; }
+
+/* Hero */
+.hero { padding:104px 0 84px; text-align:center; position:relative; overflow:hidden; }
+.eyebrow {
+  display:inline-flex; align-items:center; gap:8px;
+  font-size:12px; font-weight:500; color:var(--muted);
+  border:1px solid var(--border); background:var(--surface);
+  padding:5px 12px; border-radius:var(--radius-full); margin-bottom:28px;
+  letter-spacing:0; box-shadow:var(--shadow-sm);
+}
+.eyebrow .dot { width:6px; height:6px; border-radius:50%; background:var(--accent); box-shadow:0 0 0 3px var(--accent-subtle); }
+h1.display {
+  font-size:clamp(38px, 6.2vw, 60px); line-height:1.03; font-weight:600;
+  letter-spacing:-0.03em; max-width:16ch; margin:0 auto;
+}
+h1.display .accent-word { color:var(--muted); }
+.subhead {
+  margin:26px auto 0; max-width:60ch; font-size:clamp(16px,2.1vw,19px);
+  line-height:1.55; color:var(--ink-secondary); font-weight:400; letter-spacing:-0.01em;
+}
+.hero-cta { display:flex; gap:12px; justify-content:center; margin-top:38px; flex-wrap:wrap; }
+.hero-meta { margin-top:22px; font-size:13px; color:var(--muted); font-family:var(--font-mono); letter-spacing:0; }
+
+/* Agent strip */
+.agents { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:52px; }
+.chip {
+  font-family:var(--font-mono); font-size:12.5px; color:var(--ink-secondary);
+  background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm);
+  padding:7px 12px; display:inline-flex; align-items:center; gap:7px;
+  transition:border-color 160ms, transform 160ms;
+}
+.chip:hover { border-color:var(--border-strong); transform:translateY(-1px); }
+.chip .sq { width:7px; height:7px; border-radius:2px; background:var(--accent); }
+
+/* Section */
+section.block { padding:60px 0; }
+.section-head { max-width:56ch; margin-bottom:44px; }
+.overline { font-size:11px; font-weight:600; letter-spacing:0.09em; text-transform:uppercase; color:var(--accent); margin-bottom:14px; }
+h2 { font-size:clamp(26px,3.6vw,32px); font-weight:600; letter-spacing:-0.02em; line-height:1.12; }
+.section-head p { margin-top:14px; color:var(--muted); font-size:16px; line-height:1.55; }
+
+/* Value grid */
+.grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--border); border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; }
+.cell { background:var(--surface); padding:32px 28px; display:flex; flex-direction:column; gap:12px; transition:background 200ms var(--ease-standard); }
+.cell:hover { background:var(--surface-hover); }
+.cell .num { font-family:var(--font-mono); font-size:12px; color:var(--muted-soft); }
+.cell h3 { font-size:18px; font-weight:600; letter-spacing:-0.01em; }
+.cell p { font-size:14.5px; line-height:1.55; color:var(--ink-secondary); }
+
+/* Principles line */
+.principles { border-top:1px solid var(--border); }
+.principles .wrap { display:flex; gap:40px; justify-content:center; flex-wrap:wrap; padding:44px 24px; text-align:center; }
+.pr { display:flex; flex-direction:column; gap:4px; }
+.pr .k { font-weight:600; font-size:15px; letter-spacing:-0.01em; }
+.pr .v { font-size:13px; color:var(--muted); }
+
+/* CTA band */
+.cta-band { text-align:center; padding:84px 0; }
+.cta-band h2 { max-width:20ch; margin:0 auto 10px; }
+.cta-band p { color:var(--muted); margin-bottom:30px; font-size:16px; }
+
+/* Waitlist */
+.waitlist { display:flex; gap:8px; justify-content:center; max-width:440px; margin:0 auto; flex-wrap:wrap; }
+.waitlist input {
+  flex:1; min-width:220px; font-family:inherit; font-size:15px; color:var(--ink);
+  background:var(--surface); border:1px solid var(--border-strong); border-radius:var(--radius-sm);
+  padding:12px 14px; transition:border-color 160ms, box-shadow 160ms;
+}
+.waitlist input::placeholder { color:var(--muted-soft); }
+.waitlist input:focus { outline:none; border-color:var(--accent); box-shadow:var(--focus-ring); }
+.form-note { margin-top:14px; font-size:12.5px; color:var(--muted); }
+
+/* Footer */
+footer { border-top:1px solid var(--border); padding:32px 0; }
+.foot-in { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; }
+.foot-in .muted { color:var(--muted); font-size:13px; }
+.foot-links { display:flex; gap:22px; font-size:13px; color:var(--muted); }
+.foot-links a:hover { color:var(--ink); }
+
+/* Theme toggle */
+.theme-toggle { width:34px; height:34px; border-radius:var(--radius-sm); display:inline-flex; align-items:center; justify-content:center; border:1px solid var(--border); background:var(--surface); cursor:pointer; color:var(--ink-secondary); transition:background 160ms, color 160ms; }
+.theme-toggle:hover { background:var(--surface-hover); color:var(--ink); }
+
+@media (max-width:780px) {
+  .grid { grid-template-columns:1fr; }
+  .hero { padding:72px 0 56px; }
+  .nav-actions .btn-secondary { display:none; }
+}
+@media (prefers-reduced-motion:reduce) {
+  * { transition:none !important; scroll-behavior:auto !important; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap nav-in">
+    <a class="brand" href="/" aria-label="Agentim home">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <rect x="4" y="4" width="6" height="6" rx="1.5" fill="var(--accent)"/>
+        <rect x="4" y="12.5" width="12" height="2.6" rx="1.3" fill="var(--muted)"/>
+        <rect x="4" y="17" width="8.5" height="2.6" rx="1.3" fill="var(--muted-soft)"/>
+      </svg>
+      <span>agentim<span class="tld">.ai</span></span>
+    </a>
+    <div class="nav-actions">
+      <a href="#how" class="btn btn-ghost">How it works</a>
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme" title="Toggle theme">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8Z"/></svg>
+      </button>
+      <a href="#waitlist" class="btn btn-primary">Get early access</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <span class="eyebrow"><span class="dot"></span> Private beta — onboarding in minutes</span>
+    <h1 class="display">Your own organization.<br /><span class="accent-word">Run by agents.</span> Led by you.</h1>
+    <p class="subhead">Agentim gives every person and every company a team of specialized AI agents — a project manager, a developer, a marketer, a researcher, a personal assistant. You set the goal. They build the plan and do the work. You stay in control.</p>
+    <div class="hero-cta">
+      <a href="#waitlist" class="btn btn-primary btn-lg">Build your organization</a>
+      <a href="#how" class="btn btn-secondary btn-lg">See how it works</a>
+    </div>
+    <p class="hero-meta">Secure by default · Useful in minutes · Calm by design</p>
+
+    <div class="agents" aria-label="Specialized agents">
+      <span class="chip"><span class="sq"></span> project-manager</span>
+      <span class="chip"><span class="sq"></span> developer</span>
+      <span class="chip"><span class="sq"></span> marketer</span>
+      <span class="chip"><span class="sq"></span> researcher</span>
+      <span class="chip"><span class="sq"></span> assistant</span>
+    </div>
+  </div>
+</header>
+
+<section class="block" id="how">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="overline">How it works</div>
+      <h2>A team, not a chatbot.</h2>
+      <p>Give Agentim a goal. It assembles the right agents, drafts a plan, and moves the work forward — while every meaningful action waits for your word.</p>
+    </div>
+    <div class="grid">
+      <div class="cell">
+        <span class="num">01</span>
+        <h3>A team, not a chatbot</h3>
+        <p>Each agent has a role and knows its craft. They coordinate, hand off, and move your projects forward — the way a real organization does.</p>
+      </div>
+      <div class="cell">
+        <span class="num">02</span>
+        <h3>Secure by default</h3>
+        <p>Your data is private from the first minute. Access is scoped, actions are logged, and nothing leaves your control without your approval.</p>
+      </div>
+      <div class="cell">
+        <span class="num">03</span>
+        <h3>You hold the reins</h3>
+        <p>Agents propose; you decide. Every plan and every meaningful action waits for your word — so speed never costs you authority.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="principles">
+  <div class="wrap">
+    <div class="pr"><span class="k">Secure by default</span><span class="v">Zero Trust · scoped · logged · revocable</span></div>
+    <div class="pr"><span class="k">Useful in minutes</span><span class="v">Onboarding measured in minutes, not weeks</span></div>
+    <div class="pr"><span class="k">Calm by design</span><span class="v">One workspace. One accent. No noise.</span></div>
+  </div>
+</section>
+
+<section class="cta-band" id="waitlist">
+  <div class="wrap">
+    <h2>Stand up your AI organization.</h2>
+    <p>Join the private beta. We'll reach out with an invite.</p>
+    <form class="waitlist" id="waitlistForm" onsubmit="return false;">
+      <input type="email" id="email" placeholder="you@company.com" aria-label="Email address" required />
+      <button type="submit" class="btn btn-primary btn-lg">Request access</button>
+    </form>
+    <p class="form-note" id="formNote">No spam. Zero Trust by default — your details stay yours.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot-in">
+    <div class="brand" style="font-size:15px;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <rect x="4" y="4" width="6" height="6" rx="1.5" fill="var(--accent)"/>
+        <rect x="4" y="12.5" width="12" height="2.6" rx="1.3" fill="var(--muted)"/>
+        <rect x="4" y="17" width="8.5" height="2.6" rx="1.3" fill="var(--muted-soft)"/>
+      </svg>
+      <span>agentim<span class="tld">.ai</span></span>
+    </div>
+    <div class="foot-links">
+      <a href="#how">How it works</a>
+      <a href="#waitlist">Early access</a>
+      <a href="mailto:hello@agentim.ai">Contact</a>
+    </div>
+    <div class="muted">© 2026 Agentim</div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var root = document.documentElement;
+  var saved = localStorage.getItem('agentim-theme');
+  if (saved) root.setAttribute('data-theme', saved);
+  document.getElementById('themeToggle').addEventListener('click', function(){
+    var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    localStorage.setItem('agentim-theme', next);
+  });
+  document.getElementById('waitlistForm').addEventListener('submit', function(){
+    var email = document.getElementById('email').value.trim();
+    var note = document.getElementById('formNote');
+    if (email && /.+@.+\..+/.test(email)) {
+      note.textContent = "You're on the list. We'll be in touch shortly.";
+      note.style.color = 'var(--success)';
+      document.getElementById('email').value = '';
+    } else {
+      note.textContent = "Please enter a valid email address.";
+      note.style.color = 'var(--danger)';
+    }
+  });
+})();
+</script>
+</body>
+</html>
