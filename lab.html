@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Agentim — Hero Animation Concepts</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --bg:#0a0a0a; --bg2:#020202; --panel:#0d0d0d;
+  --ink:#fafafa; --sec:#d4d4d4; --mut:#737373; --faint:#525252;
+  --border:rgba(255,255,255,0.1); --border2:rgba(255,255,255,0.06);
+  --accent:#e40014;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+  --sans:'Inter',-apple-system,system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;padding:24px;line-height:1.5}
+.wrap{max-width:1120px;margin:0 auto}
+h1{font-size:22px;font-weight:600;letter-spacing:-0.02em}
+.sub{color:var(--mut);font-size:13.5px;margin-top:6px;font-family:var(--mono)}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:22px 0 16px}
+.tab{font-family:var(--mono);font-size:12.5px;color:var(--sec);background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:9px 14px;cursor:pointer;transition:all .15s;user-select:none}
+.tab:hover{border-color:rgba(255,255,255,0.25)}
+.tab.active{border-color:var(--accent);color:#fff;box-shadow:inset 0 0 0 1px var(--accent)}
+.tab .k{color:var(--accent);margin-right:7px}
+.stage{position:relative;border:1px solid var(--border);border-radius:12px;background:linear-gradient(180deg,#0c0c0c,#080808);height:min(62vh,560px);overflow:hidden}
+.panelhead{position:absolute;top:0;left:0;right:0;height:38px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;border-bottom:1px solid var(--border2);font-family:var(--mono);font-size:11px;color:var(--mut);letter-spacing:.06em;z-index:5;background:rgba(8,8,8,.6);backdrop-filter:blur(6px)}
+.panelhead .live{display:flex;align-items:center;gap:7px;color:var(--sec)}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:blink 1.6s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+canvas{display:block;width:100%;height:100%}
+.desc{margin-top:14px;font-size:13.5px;color:var(--sec)}
+.desc b{color:#fff;font-weight:600}
+.hint{margin-top:8px;font-size:12px;color:var(--faint);font-family:var(--mono)}
+.corner{position:absolute;width:10px;height:10px;border-color:var(--border);z-index:4}
+.corner.tl{top:8px;left:8px;border-top:1px solid;border-left:1px solid}
+.corner.tr{top:8px;right:8px;border-top:1px solid;border-right:1px solid}
+.corner.bl{bottom:8px;left:8px;border-bottom:1px solid;border-left:1px solid}
+.corner.br{bottom:8px;right:8px;border-bottom:1px solid;border-right:1px solid}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Agentim — Hero Animation Concepts</h1>
+  <div class="sub">/// pick the one that illustrates it best — then I build the winner properly</div>
+
+  <div class="tabs" id="tabs">
+    <div class="tab active" data-c="kanban"><span class="k">A</span>Kanban flow</div>
+    <div class="tab" data-c="log"><span class="k">B</span>Live activity log</div>
+    <div class="tab" data-c="org"><span class="k">C</span>Org assembles</div>
+    <div class="tab" data-c="pipe"><span class="k">D</span>Pipeline</div>
+  </div>
+
+  <div class="stage" id="stage">
+    <div class="panelhead">
+      <span id="phLabel">AGENT BOARD</span>
+      <span class="live"><span class="dot"></span> LIVE</span>
+    </div>
+    <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+    <canvas id="cv"></canvas>
+  </div>
+
+  <div class="desc" id="desc"></div>
+  <div class="hint">Concepts render on a dark roynativ-style panel · red = accent · same palette the final site uses</div>
+</div>
+
+<script>
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+const stage=document.getElementById('stage');
+const ACCENT='#e40014', INK='#fafafa', SEC='#d4d4d4', MUT='#737373', FAINT='#525252';
+const AGENTS=['project-manager','developer','marketer','researcher','assistant'];
+let W=0,H=0,DPR=1,t0=performance.now(),raf=0,current='kanban';
+
+function resize(){
+  const r=stage.getBoundingClientRect();
+  DPR=Math.min(window.devicePixelRatio||1,2);
+  W=r.width; H=r.height;
+  cv.width=Math.round(W*DPR); cv.height=Math.round(H*DPR);
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  build();
+}
+window.addEventListener('resize',resize);
+
+// ---------- shared helpers ----------
+function rr(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+function mono(s){return s} 
+const rand=(a,b)=>a+Math.random()*(b-a);
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+
+// ==========================================================
+// A · KANBAN FLOW
+// ==========================================================
+let kb;
+function buildKanban(){
+  const cols=['BACKLOG','IN PROGRESS','REVIEW','DONE'];
+  kb={cols, cards:[], spawn:0};
+  for(let i=0;i<5;i++) spawnCard(rand(0,3000));
+}
+function spawnCard(delay){
+  const tasks=['classify ticket #'+Math.floor(rand(1000,9999)),'draft campaign copy','fix auth bug','summarize research','build landing section','route to Zendesk','update CRM','generate report'];
+  kb.cards.push({id:Math.random(), label:pick(tasks), agent:pick(AGENTS), col:0, x:0,y:0, tx:0,ty:0, born:performance.now()+delay, moveAt:performance.now()+delay+rand(1400,2600), active:false});
+}
+function drawKanban(now){
+  const pad=54, top=54, gap=14;
+  const colW=(W-pad*2-gap*3)/4;
+  const colH=H-top-30;
+  // columns
+  kb.cols.forEach((c,i)=>{
+    const x=pad+i*(colW+gap);
+    ctx.strokeStyle='rgba(255,255,255,0.08)'; ctx.lineWidth=1;
+    rr(x,top,colW,colH,8); ctx.stroke();
+    ctx.fillStyle=i===3?ACCENT:MUT; ctx.font='600 10px '+ 'var(--mono)';
+    ctx.font='600 10px JetBrains Mono'; ctx.textAlign='left';
+    ctx.fillText(c, x+12, top+20);
+    ctx.fillStyle=FAINT; ctx.font='400 10px JetBrains Mono';
+    const n=kb.cards.filter(k=>k.col===i&&now>=k.born).length;
+    ctx.textAlign='right'; ctx.fillText(String(n), x+colW-12, top+20);
+  });
+  // layout cards within columns
+  const slotY={};
+  kb.cards.forEach(cd=>{
+    if(now<cd.born) return;
+    const ci=cd.col;
+    slotY[ci]=(slotY[ci]||0);
+    const x=pad+ci*(colW+gap)+10;
+    const y=top+34+slotY[ci]*46;
+    slotY[ci]++;
+    cd.tx=x; cd.ty=y;
+    if(cd.x===0&&cd.y===0){cd.x=x;cd.y=y;}
+    cd.x+=(cd.tx-cd.x)*0.12; cd.y+=(cd.ty-cd.y)*0.12;
+    // advance
+    if(now>=cd.moveAt && cd.col<3){ cd.col++; cd.moveAt=now+rand(1500,2800); cd.active=true; setTimeout(()=>cd.active=false,500); }
+    // draw card
+    const w=colW-20, h=38;
+    const done=cd.col===3;
+    ctx.save();
+    if(cd.active){ctx.shadowColor=ACCENT;ctx.shadowBlur=12;}
+    ctx.fillStyle=done?'rgba(228,0,20,0.06)':'rgba(255,255,255,0.03)';
+    rr(cd.x,cd.y,w,h,6); ctx.fill();
+    ctx.strokeStyle=cd.active?ACCENT:(done?'rgba(228,0,20,0.4)':'rgba(255,255,255,0.14)');
+    ctx.lineWidth=1; rr(cd.x,cd.y,w,h,6); ctx.stroke();
+    ctx.restore();
+    // status dot
+    ctx.fillStyle=done?ACCENT:(cd.col===1?'#e4a000':cd.col===2?'#3b82c4':MUT);
+    ctx.beginPath();ctx.arc(cd.x+12,cd.y+13,3,0,7);ctx.fill();
+    ctx.fillStyle=SEC;ctx.font='500 10.5px Inter';ctx.textAlign='left';
+    ctx.fillText(cd.label.slice(0,Math.floor(w/6.2)), cd.x+22, cd.y+16);
+    ctx.fillStyle=FAINT;ctx.font='400 9px JetBrains Mono';
+    ctx.fillText(cd.agent, cd.x+22, cd.y+29);
+  });
+  // recycle done cards & keep spawning
+  kb.cards=kb.cards.filter(cd=> !(cd.col===3 && now-cd.moveAt>1600 && now>cd.born));
+  if(now>kb.spawn){ kb.spawn=now+rand(1400,2400); if(kb.cards.length<11) spawnCard(0); }
+}
+
+// ==========================================================
+// B · LIVE ACTIVITY LOG
+// ==========================================================
+let lg;
+function buildLog(){ lg={lines:[], next:0}; for(let i=0;i<9;i++) addLine(true); }
+function addLine(seed){
+  const verbs=['dispatched','completed','routed','classified','escalated','resolved','drafted','indexed','approved','handed off'];
+  const objs=['ticket #'+Math.floor(rand(1000,9999)),'campaign brief','PR #'+Math.floor(rand(10,400)),'research query','customer reply','vector batch','audit entry','webhook','onboarding flow'];
+  const ag=pick(AGENTS);
+  const err=Math.random()<0.12;
+  lg.lines.push({ts:new Date(Date.now()-(seed?rand(0,60000):0)), ag, verb:pick(verbs), obj:pick(objs), err, y:0, ty:0, born:performance.now(), a:0});
+  if(lg.lines.length>16) lg.lines.shift();
+}
+function drawLog(now){
+  const padL=48, top=58, lh=26;
+  // left status rail
+  ctx.font='600 10px JetBrains Mono';ctx.textAlign='left';
+  ctx.fillStyle=MUT;ctx.fillText('ORCHESTRATOR /// YOU', padL, top-14);
+  lg.lines.forEach((ln,i)=>{
+    ln.ty=top+i*lh; if(ln.y===0)ln.y=ln.ty+8; ln.y+=(ln.ty-ln.y)*0.18; ln.a+=((1)-ln.a)*0.12;
+    const y=ln.y;
+    ctx.globalAlpha=Math.min(1,ln.a)*(i< lg.lines.length-14?0.35:1);
+    // timestamp
+    ctx.fillStyle=FAINT;ctx.font='400 10.5px JetBrains Mono';
+    const hh=String(ln.ts.getHours()).padStart(2,'0'), mm=String(ln.ts.getMinutes()).padStart(2,'0'), ss=String(ln.ts.getSeconds()).padStart(2,'0');
+    ctx.fillText(hh+':'+mm+':'+ss, padL, y);
+    // agent chip
+    ctx.fillStyle=ln.err?ACCENT:SEC;ctx.font='600 10.5px JetBrains Mono';
+    ctx.fillText(ln.ag.padEnd(16).slice(0,16), padL+72, y);
+    // verb + obj
+    ctx.fillStyle=ln.err?ACCENT:'#cfcfcf';ctx.font='400 11px Inter';
+    ctx.fillText(ln.verb+' '+ln.obj, padL+72+130, y);
+    if(ln.err){ctx.fillStyle=ACCENT;ctx.font='600 9px JetBrains Mono';ctx.fillText('RETRY', W-padL-40, y);}
+    ctx.globalAlpha=1;
+  });
+  // scanning cursor
+  const cy=top+lg.lines.length*lh;
+  ctx.fillStyle=ACCENT; if(Math.floor(now/500)%2) ctx.fillRect(padL,cy-9,7,12);
+  if(now>lg.next){ lg.next=now+rand(700,1500); addLine(false); }
+}
+
+// ==========================================================
+// C · ORG ASSEMBLES
+// ==========================================================
+let og;
+function buildOrg(){
+  og={nodes:[],phase:0,t:performance.now()};
+  const cx=W/2, cy=H/2+6;
+  og.core={x:cx,y:cy};
+  AGENTS.forEach((a,i)=>{
+    const ang=-Math.PI/2 + i*(2*Math.PI/AGENTS.length);
+    const R=Math.min(W,H)*0.29;
+    og.nodes.push({id:a, ang, R, tx:cx+Math.cos(ang)*R, ty:cy+Math.sin(ang)*R,
+      x:cx+Math.cos(ang)*R*3.2, y:cy+Math.sin(ang)*R*3.2, in:0, delay:i*260, pulse:0});
+  });
+  og.pk=0;
+}
+function drawOrg(now){
+  const cx=W/2, cy=H/2+6;
+  const el=now-og.t;
+  // edges (draw as they arrive)
+  og.nodes.forEach(n=>{
+    const p=Math.max(0,Math.min(1,(el-n.delay)/900));
+    n.in=p<1?(1-Math.pow(1-p,3)):1;
+    n.x=n.tx+(n.x-n.tx)*(1-n.in); // ease toward target
+    n.x=n.tx*n.in + (cx+Math.cos(n.ang)*n.R*3.2)*(1-n.in);
+    n.y=n.ty*n.in + (cy+Math.sin(n.ang)*n.R*3.2)*(1-n.in);
+    if(n.in>0.15){
+      ctx.strokeStyle='rgba(255,255,255,'+(0.06+n.in*0.12)+')';ctx.lineWidth=1;
+      ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(n.x,n.y);ctx.stroke();
+    }
+  });
+  // periodic dispatch pulse along edges
+  if(now>og.pk && og.nodes.every(n=>n.in>0.9)){ og.pk=now+1400; og.nodes.forEach(n=>n.pulse=now+rand(0,400)); }
+  og.nodes.forEach(n=>{
+    if(n.pulse&&now>=n.pulse&&now<n.pulse+700){
+      const pp=(now-n.pulse)/700; const px=cx+(n.x-cx)*pp, py=cy+(n.y-cy)*pp;
+      ctx.fillStyle=ACCENT;ctx.shadowColor=ACCENT;ctx.shadowBlur=10;
+      ctx.beginPath();ctx.arc(px,py,2.6,0,7);ctx.fill();ctx.shadowBlur=0;
+    }
+  });
+  // agent nodes
+  og.nodes.forEach(n=>{
+    if(n.in<0.05)return;
+    ctx.globalAlpha=Math.min(1,n.in);
+    const s=7;
+    ctx.fillStyle='#0d0d0d';rr(n.x-s,n.y-s,s*2,s*2,3);ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,0.5)';ctx.lineWidth=1;rr(n.x-s,n.y-s,s*2,s*2,3);ctx.stroke();
+    ctx.fillStyle=SEC;ctx.font='500 10px JetBrains Mono';ctx.textAlign='center';
+    const lift=Math.sin(n.ang)<-0.3;
+    ctx.fillText(n.id, n.x, n.y+(lift?-16:24));
+    ctx.globalAlpha=1;
+  });
+  // core
+  const beat=0.5+Math.sin(now*0.002)*0.5;
+  ctx.strokeStyle='rgba(228,0,20,'+(0.2+beat*0.3)+')';ctx.lineWidth=1;
+  const h=13+beat*4; rr(cx-h,cy-h,h*2,h*2,4);ctx.stroke();
+  ctx.fillStyle=ACCENT;ctx.shadowColor=ACCENT;ctx.shadowBlur=14;rr(cx-8,cy-8,16,16,3);ctx.fill();ctx.shadowBlur=0;
+  ctx.fillStyle='#fff';ctx.font='600 10px JetBrains Mono';ctx.textAlign='center';ctx.fillText('YOU',cx,cy+3);
+  // restart loop
+  if(el>7000) buildOrg();
+}
+
+// ==========================================================
+// D · PIPELINE
+// ==========================================================
+let pp;
+function buildPipe(){ pp={stages:['GOAL',...AGENTS.map(a=>a.toUpperCase()),'RESULT'], toks:[], next:0}; }
+function drawPipe(now){
+  const stages=pp.stages, n=stages.length;
+  const padL=60, padR=60, y=H/2;
+  const usable=W-padL-padR;
+  const xs=stages.map((s,i)=>padL+ (usable*(i/(n-1))));
+  // rail
+  ctx.strokeStyle='rgba(255,255,255,0.1)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(xs[0],y);ctx.lineTo(xs[n-1],y);ctx.stroke();
+  // stage stations
+  stages.forEach((s,i)=>{
+    const isEnd=i===0||i===n-1;
+    ctx.fillStyle='#0b0b0b';
+    if(isEnd){rr(xs[i]-9,y-9,18,18,4);ctx.fill();ctx.strokeStyle=i===0?'rgba(255,255,255,0.5)':ACCENT;ctx.lineWidth=1;rr(xs[i]-9,y-9,18,18,4);ctx.stroke();}
+    else{ctx.beginPath();ctx.arc(xs[i],y,7,0,7);ctx.fill();ctx.strokeStyle='rgba(255,255,255,0.4)';ctx.lineWidth=1;ctx.stroke();}
+    ctx.fillStyle=i===n-1?ACCENT:MUT;ctx.font='600 9px JetBrains Mono';ctx.textAlign='center';
+    ctx.fillText(s.slice(0,12), xs[i], y+(i%2?28:-20));
+  });
+  // tokens travel
+  pp.toks.forEach(tk=>{
+    tk.p+=tk.sp;
+    const seg=tk.p*(n-1); const i=Math.floor(seg); const f=seg-i;
+    if(i>=n-1){tk.dead=true;return;}
+    const x=xs[i]+(xs[i+1]-xs[i])*f;
+    // trail
+    ctx.strokeStyle='rgba(228,0,20,0.5)';ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(x-16,y);ctx.lineTo(x,y);ctx.stroke();
+    ctx.fillStyle=ACCENT;ctx.shadowColor=ACCENT;ctx.shadowBlur=10;
+    ctx.beginPath();ctx.arc(x,y,3.2,0,7);ctx.fill();ctx.shadowBlur=0;
+    // light up current station
+    ctx.strokeStyle=ACCENT;ctx.lineWidth=1;ctx.beginPath();ctx.arc(xs[i],y,9,0,7);ctx.stroke();
+  });
+  pp.toks=pp.toks.filter(t=>!t.dead);
+  if(now>pp.next){pp.next=now+1500; pp.toks.push({p:0,sp:rand(0.0016,0.0022)});}
+  ctx.fillStyle=FAINT;ctx.font='400 10px JetBrains Mono';ctx.textAlign='center';
+  ctx.fillText('one goal → specialized agents → delivered', W/2, H-22);
+}
+
+// ---------- loop ----------
+const DESCS={
+  kanban:'<b>A · Kanban flow.</b> Tasks spawn from customers and move Backlog → In progress → Review → Done, each pulled by a named agent. Shows work actually getting completed — concrete and legible.',
+  log:'<b>B · Live activity log.</b> A streaming feed of agent actions in real time (mono, roynativ-style), with retries flagged red. Feels like watching a real autonomous ops team run.',
+  org:'<b>C · Org assembles.</b> Agent nodes fly in and arrange into a team around the red “you” core, then the orchestrator dispatches work outward. The literal “company of agents” story.',
+  pipe:'<b>D · Pipeline.</b> A goal enters, travels through each specialized agent stage, and emerges as a delivered result. Clean left-to-right flow.'
+};
+const LABELS={kanban:'AGENT BOARD',log:'ACTIVITY /// LIVE',org:'ORG /// ASSEMBLING',pipe:'PIPELINE /// FLOW'};
+function build(){ if(current==='kanban')buildKanban(); else if(current==='log')buildLog(); else if(current==='org')buildOrg(); else buildPipe(); }
+function frame(now){
+  ctx.clearRect(0,0,W,H);
+  // faint dot grid
+  ctx.fillStyle='rgba(255,255,255,0.03)';
+  for(let y=40;y<H;y+=28)for(let x=40;x<W;x+=28)ctx.fillRect(x,y,1,1);
+  if(current==='kanban')drawKanban(now);
+  else if(current==='log')drawLog(now);
+  else if(current==='org')drawOrg(now);
+  else drawPipe(now);
+  raf=requestAnimationFrame(frame);
+}
+document.getElementById('tabs').addEventListener('click',e=>{
+  const tab=e.target.closest('.tab'); if(!tab)return;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  tab.classList.add('active');
+  current=tab.dataset.c;
+  document.getElementById('phLabel').textContent=LABELS[current];
+  document.getElementById('desc').innerHTML=DESCS[current];
+  build();
+});
+document.getElementById('desc').innerHTML=DESCS.kanban;
+resize();
+raf=requestAnimationFrame(frame);
+</script>
+</body>
+</html>
