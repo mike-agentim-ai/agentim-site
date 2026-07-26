@@ -239,8 +239,6 @@ function advance(c){
   if(c.col>=3) return;
   c.col++;
   c.born=performance.now(); // re-stamp so it lands at bottom of new column
-  const sdot=c.el.querySelector('.sdot');
-  sdot.style.background=SDOT[c.col];
   c.el.classList.add('moving');
   if(c.col===3) c.el.classList.add('done');
   layout(true);
@@ -279,7 +277,7 @@ window.addEventListener('resize', ()=>{ clearTimeout(window._rz); window._rz=set
 
 // init
 buildCols();
-for(let i=0;i<6;i++){ const c=makeCard(); c.col=Math.floor(Math.random()*3); c.el.querySelector('.sdot').style.background=SDOT[c.col]; }
+for(let i=0;i<6;i++){ const c=makeCard(); c.col=Math.floor(Math.random()*3); }
 layout(false);
 setTimeout(()=>layout(true), 60);
 setTimeout(tick, 900);
