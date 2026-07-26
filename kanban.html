@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Agentim — Team Boards</title>
+<title>Agentim — Team Boards (Trello-style)</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 <style>
 :root{
   --bg:#0a0a0a; --ink:#fafafa; --sec:#d4d4d4; --mut:#737373; --faint:#525252;
   --border:rgba(255,255,255,0.1); --border2:rgba(255,255,255,0.06);
   --accent:#ffffff;
-  --queued:#8a8a8a; --working:#c9a227; --review:#5b9bd5; --done:#4fae74;
+  --c-backlog:#8a8a8a; --c-progress:#c9a227; --c-review:#5b9bd5; --c-done:#4fae74;
   --mono:'JetBrains Mono',ui-monospace,monospace;
   --sans:'Inter',-apple-system,system-ui,sans-serif;
 }
@@ -20,181 +20,278 @@ body{background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-font-
 h1{font-size:20px;font-weight:600;letter-spacing:-0.02em}
 .sub{color:var(--mut);font-size:13px;margin-top:5px;font-family:var(--mono)}
 
+/* team tabs */
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0 0}
+.tab{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;color:var(--sec);
+  background:#0d0d0d;border:1px solid var(--border);border-radius:8px;padding:7px 11px 7px 7px;cursor:pointer;
+  transition:all .15s;user-select:none}
+.tab:hover{border-color:rgba(255,255,255,.28)}
+.tab.active{border-color:rgba(255,255,255,.6);color:#fff;background:#151515}
+.tab img{width:22px;height:22px;border-radius:50%;object-fit:cover;object-position:center;flex:none;border:1px solid var(--border)}
+.tab .mk{font-size:8px;color:var(--faint);border:1px solid var(--border);border-radius:3px;padding:1px 4px;margin-left:2px}
+
 .stage{position:relative;border:1px solid var(--border);border-radius:14px;
-  background:linear-gradient(180deg,#0c0c0c,#080808);margin-top:20px;overflow:hidden}
-.phead{display:flex;align-items:center;justify-content:space-between;padding:0 18px;height:44px;
+  background:linear-gradient(180deg,#0c0c0c,#080808);margin-top:14px;overflow:hidden;height:min(60vh,540px)}
+.phead{display:flex;align-items:center;justify-content:space-between;padding:0 16px;height:44px;
   border-bottom:1px solid var(--border2);font-family:var(--mono);font-size:11px;color:var(--mut);
-  letter-spacing:.06em;background:rgba(8,8,8,.55)}
-.phead .live{display:flex;align-items:center;gap:7px;color:var(--sec)}
+  letter-spacing:.05em;background:rgba(8,8,8,.55);position:relative;z-index:20}
+.phead .lead{display:flex;align-items:center;gap:9px;color:var(--sec)}
+.phead .lead img{width:24px;height:24px;border-radius:50%;object-fit:cover;object-position:center;border:1px solid var(--border)}
+.phead .live{display:flex;align-items:center;gap:7px}
 .dot{width:6px;height:6px;border-radius:50%;background:#4fae74;animation:blink 1.6s infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
 
-/* board grid */
-.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;padding:18px}
-@media (max-width:820px){ .grid{grid-template-columns:1fr} }
+.board{position:absolute;inset:44px 0 0 0;padding:16px}
+.cols{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;height:100%}
+.col{position:relative;border:1px solid var(--border2);border-radius:10px;background:rgba(255,255,255,0.012);
+  min-width:0;display:flex;flex-direction:column}
+.col-h{display:flex;align-items:center;justify-content:space-between;padding:11px 11px 9px;
+  font-family:var(--mono);font-size:10px;letter-spacing:.04em;color:var(--mut);border-bottom:1px solid var(--border2)}
+.col-h .name{display:flex;align-items:center;gap:6px}
+.col-h .sw{width:6px;height:6px;border-radius:2px}
+.col:nth-child(1) .sw{background:var(--c-backlog)}
+.col:nth-child(2) .sw{background:var(--c-progress)}
+.col:nth-child(3) .sw{background:var(--c-review)}
+.col:nth-child(4) .sw{background:var(--c-done)}
+.col-h .count{color:var(--faint)}
+.col-body{position:relative;flex:1;overflow:hidden}
 
-.board{border:1px solid var(--border);border-radius:12px;background:rgba(255,255,255,0.015);
-  display:flex;flex-direction:column;overflow:hidden}
-.b-head{display:flex;align-items:center;gap:11px;padding:13px 14px;border-bottom:1px solid var(--border2);
-  background:rgba(255,255,255,0.015)}
-.b-lead{width:38px;height:38px;border-radius:50%;object-fit:cover;flex:none;
-  border:1px solid var(--border)}
-.b-meta{display:flex;flex-direction:column;min-width:0;flex:1}
-.b-team{font-size:14px;font-weight:600;letter-spacing:-0.01em;display:flex;align-items:center;gap:8px}
-.b-team .tag{font-family:var(--mono);font-size:8.5px;font-weight:500;letter-spacing:.08em;color:var(--mut);
-  border:1px solid var(--border);border-radius:3px;padding:2px 5px}
-.b-lead-name{font-family:var(--mono);font-size:10.5px;color:var(--mut);margin-top:2px}
-.b-stat{font-family:var(--mono);font-size:10px;color:var(--faint);text-align:right;white-space:nowrap}
+.cardlayer{position:absolute;inset:44px 0 0 0;pointer-events:none}
+.card{position:absolute;left:0;top:0;border-radius:9px;background:#151515;border:1px solid rgba(255,255,255,0.1);
+  padding:9px 10px;box-shadow:0 1px 2px rgba(0,0,0,.4);
+  transition:transform .6s cubic-bezier(.22,.61,.16,1), opacity .35s ease, box-shadow .3s, border-color .3s;
+  will-change:transform,opacity}
+.card.moving{box-shadow:0 10px 24px -6px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.5);border-color:rgba(255,255,255,.5);z-index:10}
+.card.enter{opacity:0;transform:translate(var(--x),calc(var(--y) + 10px)) scale(.97)}
+.card.done{border-color:rgba(255,255,255,.3);background:rgba(255,255,255,.045)}
+.card .title{font-size:12px;color:var(--ink);font-weight:500;line-height:1.38}
+.card .foot{display:flex;align-items:center;gap:8px;margin-top:9px;padding-top:8px;border-top:1px solid var(--border2)}
+.card .av{width:24px;height:24px;border-radius:50%;object-fit:cover;object-position:center 20%;flex:none;border:1px solid var(--border);background:#1c1c1c}
+.card .who{display:flex;flex-direction:column;min-width:0;line-height:1.2}
+.card .who .nm{font-size:10.5px;color:var(--ink);font-weight:500;white-space:nowrap}
+.card .who .rl{font-family:var(--mono);font-size:8.5px;color:var(--mut);white-space:nowrap}
+.card .chk{margin-left:auto;color:var(--ink);opacity:0;transition:opacity .3s;flex:none;font-size:11px}
+.card.done .chk{opacity:1}
 
-.tasks{display:flex;flex-direction:column;gap:8px;padding:12px}
-.task{display:flex;align-items:flex-start;gap:10px;border:1px solid var(--border2);border-radius:9px;
-  padding:10px 11px;background:#131313;
-  transition:opacity .4s ease, transform .4s cubic-bezier(.22,.61,.16,1), border-color .3s;}
-.task.enter{opacity:0;transform:translateY(8px)}
-.task.leave{opacity:0;transform:translateY(-6px)}
-.task .av{width:28px;height:28px;border-radius:50%;object-fit:cover;flex:none;border:1px solid var(--border)}
-.task .body{flex:1;min-width:0}
-.task .t-title{font-size:12.5px;color:var(--ink);font-weight:500;line-height:1.4}
-.task .t-sub{display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap}
-.task .who{font-family:var(--mono);font-size:9.5px;color:var(--mut)}
-.pill{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:9px;
-  letter-spacing:.04em;padding:2px 7px;border-radius:999px;border:1px solid var(--border);color:var(--sec)}
-.pill .pd{width:5px;height:5px;border-radius:50%}
-.pill.queued .pd{background:var(--queued)} .pill.working .pd{background:var(--working)}
-.pill.review .pd{background:var(--review)} .pill.done .pd{background:var(--done)}
-.pill.working{color:#e2c766} .pill.review{color:#9cc4ea} .pill.done{color:#8fd6ab}
+.foot{display:none}
 
-.foot{padding:11px 18px;border-top:1px solid var(--border2);display:flex;align-items:center;
-  justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--faint)}
-.foot .mike{color:var(--sec)}
-.foot .mike b{color:var(--ink);font-weight:600}
+@media (max-width:720px){
+  body{padding:14px}
+  .board{padding:10px;inset:44px 0 0 0}
+  .cardlayer{inset:44px 0 0 0}
+  .cols{gap:6px}
+  .col-h{padding:8px 5px 7px;font-size:7.5px}
+  .col-h .name{gap:3px}
+  .card{padding:6px 6px}
+  .card .title{font-size:8.5px;line-height:1.25}
+  .card .foot{gap:5px;margin-top:6px;padding-top:5px}
+  .card .av{width:17px;height:17px}
+  .card .who .nm{font-size:7.5px}
+  .card .who .rl{font-size:6px}
+  .phead .lead .role{display:none}
+}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>Agentim — Team boards (hire a team of AI agents)</h1>
-  <div class="sub">/// each board is an autonomous AI team · a team lead reports to Mike · colored avatars · full text</div>
+  <h1>Agentim — hire a team of AI agents</h1>
+  <div class="sub">/// switch teams · Trello-style flow · colored faces · one team assembled by Mike</div>
+
+  <div class="tabs" id="tabs"></div>
 
   <div class="stage">
     <div class="phead">
-      <span>TEAM BOARDS /// AUTONOMOUS</span>
-      <span class="live"><span class="dot"></span> LIVE</span>
+      <span class="lead" id="leadInfo"></span>
+      <span class="live"><span class="dot"></span> <span style="color:var(--sec)">LIVE</span></span>
     </div>
-    <div class="grid" id="grid"></div>
-    <div class="foot">
-      <span>4 teams · self-operating</span>
-      <span class="mike">team leads report to <b>Mike</b> — your AI chief of staff</span>
-    </div>
+    <div class="board"><div class="cols" id="cols"></div></div>
+    <div class="cardlayer" id="cardlayer"></div>
   </div>
 </div>
 
 <script>
-// Each board = an autonomous AI team, with a lead who reports to Mike.
-const TEAMS=[
-  {team:'Marketing', tag:'GROWTH', lead:{name:'Omar Haddad', role:'Team Lead · Growth AI', img:12},
-   members:[{name:'Omar Haddad',img:12},{name:'Lia Frank',img:45},{name:'Ben Ori',img:15}],
-   tasks:['Draft Q3 launch campaign','A/B test the pricing page','Publish product changelog','Plan the webinar funnel','Refresh landing copy']},
-  {team:'Engineering', tag:'AI-SPEC', lead:{name:'Mia Chen', role:'Team Lead · Staff Engineer AI', img:5},
-   members:[{name:'Mia Chen',img:5},{name:'Raj Patel',img:11},{name:'Tom Weiss',img:68}],
-   tasks:['Ship agent-routing v2','Fix token refresh bug','Review PR #418','Add rate-limit guard','Write API docs']},
-  {team:'DevOps', tag:'INFRA', lead:{name:'Leo Novak', role:'Team Lead · SRE AI', img:33},
-   members:[{name:'Leo Novak',img:33},{name:'Ana Cruz',img:23},{name:'Kai Berg',img:51}],
-   tasks:['Roll out canary deploy','Scale inference cluster','Rotate prod secrets','Tune the autoscaler','Patch base image']},
-  {team:'Security', tag:'ZERO-TRUST', lead:{name:'Sara Kohn', role:'Team Lead · CISO AI', img:16},
-   members:[{name:'Sara Kohn',img:16},{name:'Dana Levi',img:47},{name:'Yon Adar',img:60}],
-   tasks:['Patch CVE-2026-1183','Run quarterly access audit','Zero-Trust policy review','Revoke stale API keys','Encrypt backups at rest']},
-];
-const STATUSES=[
-  {k:'queued', label:'QUEUED'},
-  {k:'working', label:'WORKING'},
-  {k:'review', label:'REVIEW'},
-  {k:'done', label:'DONE'},
-];
-const grid=document.getElementById('grid');
-const pv=n=>`https://i.pravatar.cc/64?img=${n}`;
+const COLS=['BACKLOG','IN PROGRESS','REVIEW','DONE'];
+
+// Teams. "Founders Office" is the team Mike assembled himself — mixed men & women,
+// hand-picked names and roles.
+const TEAMS={
+  founders:{
+    label:'Founders Office', byMike:true,
+    lead:{name:'Mike', role:'Chief of Staff · AI', img:8},
+    members:[
+      {name:'Noa Bar-El', role:'Chief of Staff', img:31},
+      {name:'Adam Roux',  role:'Ops Lead',       img:14},
+      {name:'Yael Simon', role:'Exec Assistant',  img:49},
+      {name:'Daniel Cole',role:'Bizdev',          img:57},
+    ],
+    tasks:['Prep the weekly board update','Draft investor one-pager','Coordinate team OKRs','Summarize customer calls','Schedule launch review']
+  },
+  marketing:{
+    label:'Marketing',
+    lead:{name:'Omar Haddad', role:'Growth Lead · AI', img:12},
+    members:[
+      {name:'Omar Haddad', role:'Growth Lead', img:12},
+      {name:'Lia Frank',   role:'Content',      img:45},
+      {name:'Ben Ori',     role:'Performance',  img:15},
+      {name:'Maya Roth',   role:'Brand',        img:44},
+    ],
+    tasks:['Draft Q3 launch campaign','A/B test the pricing page','Publish product changelog','Plan the webinar funnel','Refresh landing copy']
+  },
+  engineering:{
+    label:'Engineering',
+    lead:{name:'Mia Chen', role:'Staff Engineer · AI', img:5},
+    members:[
+      {name:'Mia Chen',  role:'Staff Eng',  img:5},
+      {name:'Raj Patel', role:'Backend',    img:11},
+      {name:'Tom Weiss', role:'Frontend',   img:68},
+      {name:'Sofia Diaz',role:'Platform',   img:24},
+    ],
+    tasks:['Ship agent-routing v2','Fix token refresh bug','Review PR #418','Add rate-limit guard','Write API docs']
+  },
+  devops:{
+    label:'DevOps',
+    lead:{name:'Leo Novak', role:'SRE Lead · AI', img:33},
+    members:[
+      {name:'Leo Novak', role:'SRE',        img:33},
+      {name:'Ana Cruz',  role:'Cloud',      img:23},
+      {name:'Kai Berg',  role:'Reliability',img:51},
+      {name:'Ruth Adler',role:'Observability',img:26},
+    ],
+    tasks:['Roll out canary deploy','Scale inference cluster','Rotate prod secrets','Tune the autoscaler','Patch base image']
+  },
+  security:{
+    label:'Security',
+    lead:{name:'Sara Kohn', role:'CISO · AI', img:16},
+    members:[
+      {name:'Sara Kohn', role:'CISO',       img:16},
+      {name:'Dana Levi', role:'AppSec',     img:47},
+      {name:'Yon Adar',  role:'GRC',        img:60},
+      {name:'Ella Fox',  role:'Threat Intel',img:32},
+    ],
+    tasks:['Patch CVE-2026-1183','Run quarterly access audit','Zero-Trust policy review','Revoke stale API keys','Encrypt backups at rest']
+  },
+};
+
+const pv=n=>`https://i.pravatar.cc/80?img=${n}`;
 const rand=(a,b)=>a+Math.random()*(b-a);
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 
-// build the boards
-TEAMS.forEach((tm,ti)=>{
-  const b=document.createElement('div'); b.className='board';
-  b.innerHTML=`
-    <div class="b-head">
-      <img class="b-lead" src="${pv(tm.lead.img)}" alt="">
-      <div class="b-meta">
-        <div class="b-team">${tm.team}<span class="tag">${tm.tag}</span></div>
-        <div class="b-lead-name">${tm.lead.name} — ${tm.lead.role}</div>
-      </div>
-      <div class="b-stat" data-stat="${ti}">3 active</div>
-    </div>
-    <div class="tasks" data-tasks="${ti}"></div>`;
-  grid.appendChild(b);
-  tm._el=b.querySelector(`[data-tasks="${ti}"]`);
-  tm._stat=b.querySelector(`[data-stat="${ti}"]`);
-  tm._live=[];
-  // seed 3 tasks at varied statuses
-  for(let i=0;i<3;i++) addTask(tm, Math.floor(rand(0,2)));
+const tabsEl=document.getElementById('tabs');
+const colsEl=document.getElementById('cols');
+const layer=document.getElementById('cardlayer');
+const leadInfo=document.getElementById('leadInfo');
+
+let activeKey='founders';
+let cards=[]; let seq=1000; let mobile=window.innerWidth<=720;
+
+// build tabs
+Object.entries(TEAMS).forEach(([k,t])=>{
+  const el=document.createElement('div'); el.className='tab'+(k===activeKey?' active':'');
+  el.dataset.k=k;
+  el.innerHTML=`<img src="${pv(t.lead.img)}" alt="">${t.label}${t.byMike?'<span class="mk">by Mike</span>':''}`;
+  el.addEventListener('click',()=>switchTeam(k));
+  tabsEl.appendChild(el);
 });
 
-function addTask(tm, startStatus){
-  const title=pick(tm.tasks);
-  const who=pick(tm.members);
-  const el=document.createElement('div'); el.className='task enter';
-  const st=STATUSES[startStatus||0];
-  el.innerHTML=`
-    <img class="av" src="${pv(who.img)}" alt="">
-    <div class="body">
-      <div class="t-title">${title}</div>
-      <div class="t-sub">
-        <span class="pill ${st.k}"><span class="pd"></span><span class="lbl">${st.label}</span></span>
-        <span class="who">${who.name}</span>
-      </div>
-    </div>`;
-  tm._el.appendChild(el);
-  const task={el, status:startStatus||0, pill:el.querySelector('.pill'), lbl:el.querySelector('.lbl'),
-    next:performance.now()+rand(1800,3400)};
-  tm._live.push(task);
-  requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.remove('enter')));
-  updateStat(tm);
-}
-
-function updateStat(tm){
-  const active=tm._live.filter(t=>t.status<3).length;
-  tm._stat.textContent=active+' active';
-}
-
-function advance(tm, task){
-  task.status++;
-  const st=STATUSES[task.status];
-  task.pill.className='pill '+st.k;
-  task.pill.innerHTML=`<span class="pd"></span><span class="lbl">${st.label}</span>`;
-  if(task.status>=3){
-    // completed — hold briefly, then remove and spawn a fresh queued task
-    task.done=true;
-    setTimeout(()=>{
-      task.el.classList.add('leave');
-      setTimeout(()=>{
-        task.el.remove();
-        tm._live=tm._live.filter(x=>x!==task);
-        addTask(tm, 0);
-      }, 380);
-    }, rand(1400,2200));
-  } else {
-    task.next=performance.now()+rand(1800,3400);
-  }
-  updateStat(tm);
-}
-
-function loop(){
-  const now=performance.now();
-  TEAMS.forEach(tm=>{
-    tm._live.forEach(task=>{
-      if(!task.done && task.status<3 && now>=task.next) advance(tm, task);
-    });
+function buildCols(){
+  colsEl.innerHTML='';
+  COLS.forEach((c,i)=>{
+    const col=document.createElement('div'); col.className='col'; col.dataset.i=i;
+    col.innerHTML=`<div class="col-h"><span class="name"><span class="sw"></span>${c}</span><span class="count" data-c="${i}">0</span></div><div class="col-body"></div>`;
+    colsEl.appendChild(col);
   });
-  requestAnimationFrame(loop);
 }
-requestAnimationFrame(loop);
+function colRect(i){
+  const col=colsEl.querySelector(`.col[data-i="${i}"]`); if(!col) return null;
+  const body=col.querySelector('.col-body');
+  const br=body.getBoundingClientRect(); const lr=layer.getBoundingClientRect();
+  return {x:br.left-lr.left+ (mobile?4:8), y:br.top-lr.top+8, w:br.width-(mobile?8:16), h:br.height};
+}
+function setLead(){
+  const t=TEAMS[activeKey];
+  leadInfo.innerHTML=`<img src="${pv(t.lead.img)}" alt=""><span><b style="color:var(--ink);font-weight:600">${t.label}</b> <span class="role" style="color:var(--mut)">· ${t.lead.name} — ${t.lead.role}</span></span>`;
+}
+
+function layout(){
+  const byCol={0:[],1:[],2:[],3:[]};
+  cards.forEach(c=>byCol[c.col].push(c));
+  Object.keys(byCol).forEach(ci=>{
+    byCol[ci].sort((a,b)=>a.born-b.born);
+    const r=colRect(+ci); if(!r) return;
+    byCol[ci].forEach(c=>{ c.el.style.width=r.w+'px'; });
+    let cursor=0;
+    byCol[ci].forEach(c=>{
+      const x=r.x, y=r.y+cursor;
+      const hh=c.el.offsetHeight||64; cursor+=hh+(mobile?6:9);
+      c.el.style.setProperty('--x',x+'px'); c.el.style.setProperty('--y',y+'px');
+      c.el.style.transform=`translate(${x}px,${y}px)`;
+      c.el.style.opacity=(y+hh>r.h+r.y+4)?'0':'1';
+    });
+    const cnt=colsEl.querySelector(`.count[data-c="${ci}"]`); if(cnt) cnt.textContent=byCol[ci].length;
+  });
+}
+
+function makeCard(startCol){
+  const t=TEAMS[activeKey];
+  const who=pick(t.members); const title=pick(t.tasks);
+  const el=document.createElement('div'); el.className='card enter';
+  el.innerHTML=`<div class="title">${title}</div>
+    <div class="foot"><img class="av" src="${pv(who.img)}" alt=""><span class="who"><span class="nm">${who.name}</span><span class="rl">${who.role}</span></span><span class="chk">✓</span></div>`;
+  layer.appendChild(el);
+  const img=el.querySelector('.av'); if(img) img.addEventListener('load',layout,{once:true});
+  const c={el,col:startCol||0,born:performance.now()+Math.random()};
+  if(c.col===3) el.classList.add('done');
+  cards.push(c); layout();
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{el.classList.remove('enter');layout();}));
+  return c;
+}
+
+function advance(c){
+  if(c.col>=3) return;
+  c.col++; c.born=performance.now();
+  c.el.classList.add('moving');
+  if(c.col===3) c.el.classList.add('done');
+  layout();
+  setTimeout(()=>c.el.classList.remove('moving'),620);
+}
+
+function switchTeam(k){
+  if(k===activeKey) return;
+  activeKey=k;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.k===k));
+  // clear current cards
+  cards.forEach(c=>c.el.remove()); cards=[];
+  setLead();
+  seed();
+}
+
+function seed(){
+  for(let i=0;i<6;i++){ const c=makeCard(Math.floor(rand(0,3))); }
+  layout(); setTimeout(layout,60);
+}
+
+let tickTimer=0;
+function tick(){
+  const now=performance.now();
+  const movable=cards.filter(c=>c.col<3 && now-c.born>1200);
+  if(movable.length) advance(pick(movable));
+  cards.filter(c=>c.col===3).forEach(c=>{
+    if(now-c.born>2600 && !c.retiring){
+      c.retiring=true; c.el.style.opacity='0';
+      setTimeout(()=>{ c.el.remove(); cards=cards.filter(x=>x!==c); layout(); },380);
+    }
+  });
+  const active=cards.filter(c=>!c.retiring).length;
+  if(active<10 && Math.random()<0.7) makeCard(0);
+  tickTimer=setTimeout(tick, 750+Math.random()*650);
+}
+
+function onResize(){ mobile=window.innerWidth<=720; buildCols(); layout(); }
+window.addEventListener('resize',()=>{clearTimeout(window._rz);window._rz=setTimeout(onResize,120);});
+
+// init
+buildCols(); setLead(); seed();
+setTimeout(tick, 900);
 </script>
 </body>
 </html>
