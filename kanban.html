@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Agentim — Kanban Hero</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --bg:#0a0a0a; --ink:#fafafa; --sec:#d4d4d4; --mut:#737373; --faint:#525252;
+  --border:rgba(255,255,255,0.1); --border2:rgba(255,255,255,0.06);
+  --accent:#e40014;
+  --amber:#e4a000; --blue:#3b82c4; --green:#1f9d63;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+  --sans:'Inter',-apple-system,system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;padding:24px;line-height:1.5}
+.wrap{max-width:1120px;margin:0 auto}
+h1{font-size:20px;font-weight:600;letter-spacing:-0.02em}
+.sub{color:var(--mut);font-size:13px;margin-top:5px;font-family:var(--mono)}
+
+.stage{position:relative;border:1px solid var(--border);border-radius:12px;
+  background:linear-gradient(180deg,#0c0c0c,#080808);height:min(64vh,580px);
+  overflow:hidden;margin-top:20px}
+.phead{position:absolute;top:0;left:0;right:0;height:40px;display:flex;align-items:center;
+  justify-content:space-between;padding:0 16px;border-bottom:1px solid var(--border2);
+  font-family:var(--mono);font-size:11px;color:var(--mut);letter-spacing:.06em;z-index:20;
+  background:rgba(8,8,8,.55);backdrop-filter:blur(8px)}
+.phead .live{display:flex;align-items:center;gap:7px;color:var(--sec)}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:blink 1.6s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.corner{position:absolute;width:9px;height:9px;z-index:15}
+.corner.tl{top:8px;left:8px;border-top:1px solid var(--border);border-left:1px solid var(--border)}
+.corner.tr{top:8px;right:8px;border-top:1px solid var(--border);border-right:1px solid var(--border)}
+.corner.bl{bottom:8px;left:8px;border-bottom:1px solid var(--border);border-left:1px solid var(--border)}
+.corner.br{bottom:8px;right:8px;border-bottom:1px solid var(--border);border-right:1px solid var(--border)}
+
+/* board */
+.board{position:absolute;inset:40px 0 0 0;padding:20px}
+.cols{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;height:100%}
+.col{position:relative;border:1px solid var(--border2);border-radius:10px;background:rgba(255,255,255,0.012);
+  min-width:0;display:flex;flex-direction:column}
+.col-h{display:flex;align-items:center;justify-content:space-between;padding:12px 12px 10px;
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.05em;color:var(--mut);
+  border-bottom:1px solid var(--border2)}
+.col-h .name{display:flex;align-items:center;gap:7px}
+.col-h .swatch{width:7px;height:7px;border-radius:2px}
+.col:nth-child(1) .swatch{background:var(--mut)}
+.col:nth-child(2) .swatch{background:var(--amber)}
+.col:nth-child(3) .swatch{background:var(--blue)}
+.col:nth-child(4) .swatch{background:var(--accent)}
+.col:nth-child(4) .name{color:var(--accent)}
+.col-h .count{color:var(--faint)}
+.col-body{position:relative;flex:1;padding:10px;overflow:hidden}
+
+/* cards live in a single absolute layer so they glide across columns */
+.cardlayer{position:absolute;inset:0;pointer-events:none}
+.card{position:absolute;left:0;top:0;border-radius:8px;
+  background:#141414;border:1px solid rgba(255,255,255,0.1);
+  padding:10px 11px;box-shadow:0 1px 2px rgba(0,0,0,.4);
+  transition:transform .62s cubic-bezier(.22,.61,.16,1), opacity .35s ease, box-shadow .3s, border-color .3s;
+  will-change:transform,opacity}
+.card.moving{box-shadow:0 10px 26px -6px rgba(0,0,0,.7), 0 0 0 1px var(--accent);
+  border-color:var(--accent);z-index:10}
+.card.enter{opacity:0;transform:translate(var(--x),calc(var(--y) + 10px)) scale(.96)}
+.card.done{border-color:rgba(228,0,20,.35);background:rgba(228,0,20,.05)}
+.card .top{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.card .sdot{width:7px;height:7px;border-radius:50%;flex:none}
+.card .tid{font-family:var(--mono);font-size:9.5px;color:var(--faint);letter-spacing:.02em}
+.card .title{font-size:12.5px;color:var(--ink);font-weight:500;line-height:1.35;
+  overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.card .foot{display:flex;align-items:center;gap:6px;margin-top:9px}
+.card .ava{width:15px;height:15px;border-radius:50%;border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:8px;color:var(--sec);background:#1c1c1c}
+.card .agent{font-family:var(--mono);font-size:9.5px;color:var(--mut)}
+.card .chk{margin-left:auto;color:var(--accent);font-size:11px;opacity:0;transition:opacity .3s}
+.card.done .chk{opacity:1}
+
+/* mobile: single rotating column */
+@media (max-width:640px){
+  body{padding:16px}
+  .board{padding:16px}
+  .cols{grid-template-columns:1fr}
+  .col{display:none}
+  .col.active{display:flex}
+  .steps{position:absolute;top:46px;left:16px;right:16px;display:flex;gap:6px;z-index:16}
+  .steps .pill{flex:1;height:4px;border-radius:2px;background:rgba(255,255,255,.1)}
+  .steps .pill.on{background:var(--accent)}
+}
+.steps{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Agentim — Kanban hero (Trello-style, self-driving)</h1>
+  <div class="sub">/// cards move themselves through the flow · precise DOM motion · resize to test phone</div>
+
+  <div class="stage" id="stage">
+    <div class="phead">
+      <span>AGENT BOARD /// AUTONOMOUS</span>
+      <span class="live"><span class="dot"></span> LIVE</span>
+    </div>
+    <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+    <div class="steps" id="steps"></div>
+    <div class="board">
+      <div class="cols" id="cols"></div>
+      <div class="cardlayer" id="cardlayer"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const COLS=[
+  {key:'BACKLOG', color:'var(--mut)'},
+  {key:'IN PROGRESS', color:'var(--amber)'},
+  {key:'REVIEW', color:'var(--blue)'},
+  {key:'DONE', color:'var(--accent)'},
+];
+const AGENTS=[
+  {id:'project-manager', ini:'PM'},
+  {id:'developer', ini:'DV'},
+  {id:'marketer', ini:'MK'},
+  {id:'researcher', ini:'RS'},
+  {id:'assistant', ini:'AS'},
+];
+const TASKS=['classify inbound ticket','draft launch campaign','fix auth token refresh','summarize user research',
+  'build pricing section','route to Zendesk','update CRM records','generate weekly report','triage bug queue',
+  'write API docs','analyze churn cohort','prepare onboarding email','review pull request','index knowledge base'];
+const SDOT=['var(--mut)','var(--amber)','var(--blue)','var(--accent)'];
+
+const colsEl=document.getElementById('cols');
+const layer=document.getElementById('cardlayer');
+const stepsEl=document.getElementById('steps');
+let cards=[];   // {id,col,slot,el,title,agent,tid,born}
+let seq=1000;
+let mobile=window.innerWidth<=640;
+let mView=0;
+
+// build column shells
+function buildCols(){
+  colsEl.innerHTML='';
+  COLS.forEach((c,i)=>{
+    const col=document.createElement('div');
+    col.className='col'+(mobile&&i===mView?' active':'');
+    col.dataset.i=i;
+    col.innerHTML=`<div class="col-h"><span class="name"><span class="swatch"></span>${c.key}</span><span class="count" data-c="${i}">0</span></div><div class="col-body"></div>`;
+    colsEl.appendChild(col);
+  });
+  stepsEl.innerHTML=COLS.map((_,i)=>`<span class="pill${i===mView?' on':''}"></span>`).join('');
+}
+
+function colRect(i){
+  const col=colsEl.querySelector(`.col[data-i="${i}"]`);
+  if(!col) return null;
+  const body=col.querySelector('.col-body');
+  const br=body.getBoundingClientRect();
+  const lr=layer.getBoundingClientRect();
+  return {x:br.left-lr.left, y:br.top-lr.top, w:br.width, h:br.height};
+}
+
+const CARD_H=mobile?60:74, GAP=10;
+
+function layout(animate){
+  // group by column, order by slot
+  const byCol={0:[],1:[],2:[],3:[]};
+  cards.forEach(c=>byCol[c.col].push(c));
+  Object.keys(byCol).forEach(ci=>{
+    byCol[ci].sort((a,b)=>a.born-b.born);
+    const r=colRect(+ci);
+    if(!r) return;
+    byCol[ci].forEach((c,idx)=>{
+      const visible = !mobile || +ci===mView;
+      const x=r.x, y=r.y+idx*(CARD_H+GAP);
+      c.el.style.setProperty('--x', x+'px');
+      c.el.style.setProperty('--y', y+'px');
+      c.el.style.width=r.w+'px';
+      c.el.style.transform=`translate(${x}px,${y}px)`;
+      c.el.style.opacity = visible ? (idx> (mobile?4:5) ? '0' : '1') : '0';
+      c.el.style.pointerEvents='none';
+    });
+    // count
+    const cnt=colsEl.querySelector(`.count[data-c="${ci}"]`);
+    if(cnt) cnt.textContent=byCol[ci].filter(c=>true).length;
+  });
+}
+
+function makeCard(){
+  const id='c'+(seq++);
+  const title=TASKS[Math.floor(Math.random()*TASKS.length)];
+  const agent=AGENTS[Math.floor(Math.random()*AGENTS.length)];
+  const tid='AG-'+Math.floor(1000+Math.random()*9000);
+  const el=document.createElement('div');
+  el.className='card enter';
+  el.innerHTML=`<div class="top"><span class="sdot" style="background:${SDOT[0]}"></span><span class="tid">${tid}</span></div>
+    <div class="title">${title}</div>
+    <div class="foot"><span class="ava">${agent.ini}</span><span class="agent">${agent.id}</span><span class="chk">✓</span></div>`;
+  layer.appendChild(el);
+  const c={id,col:0,el,title,agent:agent.id,tid,born:performance.now()+Math.random()};
+  cards.push(c);
+  layout(false);
+  // trigger enter
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{ el.classList.remove('enter'); layout(true); }));
+  return c;
+}
+
+function advance(c){
+  if(c.col>=3) return;
+  c.col++;
+  c.born=performance.now(); // re-stamp so it lands at bottom of new column
+  const sdot=c.el.querySelector('.sdot');
+  sdot.style.background=SDOT[c.col];
+  c.el.classList.add('moving');
+  if(c.col===3) c.el.classList.add('done');
+  layout(true);
+  setTimeout(()=>c.el.classList.remove('moving'), 650);
+}
+
+function tick(){
+  const now=performance.now();
+  // advance a random eligible card
+  const movable=cards.filter(c=>c.col<3 && now-c.born>1200);
+  if(movable.length){
+    const c=movable[Math.floor(Math.random()*movable.length)];
+    advance(c);
+  }
+  // retire done cards after a beat
+  cards.filter(c=>c.col===3).forEach(c=>{
+    if(now-c.born>2600 && !c.retiring){
+      c.retiring=true;
+      c.el.style.opacity='0';
+      c.el.style.transform=c.el.style.transform+' scale(.95)';
+      setTimeout(()=>{ c.el.remove(); cards=cards.filter(x=>x!==c); layout(true); }, 400);
+    }
+  });
+  // keep the board populated
+  const active=cards.filter(c=>!c.retiring).length;
+  if(active<(mobile?7:10) && Math.random()<0.7) makeCard();
+  setTimeout(tick, 700+Math.random()*700);
+}
+
+// mobile column rotation
+function rotate(){
+  if(mobile){
+    mView=(mView+1)%4;
+    buildCols();
+    layout(true);
+  }
+  setTimeout(rotate, 2600);
+}
+
+function onResize(){
+  const wasMobile=mobile;
+  mobile=window.innerWidth<=640;
+  buildCols();
+  layout(true);
+}
+window.addEventListener('resize', ()=>{ clearTimeout(window._rz); window._rz=setTimeout(onResize,120); });
+
+// init
+buildCols();
+for(let i=0;i<6;i++){ const c=makeCard(); c.col=Math.floor(Math.random()*3); c.el.querySelector('.sdot').style.background=SDOT[c.col]; }
+layout(false);
+setTimeout(()=>layout(true), 60);
+setTimeout(tick, 900);
+setTimeout(rotate, 2600);
+</script>
+</body>
+</html>
