@@ -67,15 +67,18 @@ h1{font-size:20px;font-weight:600;letter-spacing:-0.02em}
 .card.enter{opacity:0;transform:translate(var(--x),calc(var(--y) + 10px)) scale(.96)}
 .card.done{border-color:rgba(255,255,255,.32);background:rgba(255,255,255,.045)}
 .card .top{display:flex;align-items:center;gap:8px;margin-bottom:7px}
-.card .sdot{width:7px;height:7px;border-radius:50%;flex:none}
-.card .tid{font-family:var(--mono);font-size:9.5px;color:var(--faint);letter-spacing:.02em}
+.card .dept{font-family:var(--mono);font-size:8.5px;letter-spacing:.08em;color:var(--sec);
+  border:1px solid var(--border);border-radius:3px;padding:2px 5px;background:rgba(255,255,255,.03)}
+.card .tid{font-family:var(--mono);font-size:9.5px;color:var(--faint);letter-spacing:.02em;margin-left:auto}
 .card .title{font-size:12.5px;color:var(--ink);font-weight:500;line-height:1.35;
   overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
-.card .foot{display:flex;align-items:center;gap:6px;margin-top:9px}
-.card .ava{width:15px;height:15px;border-radius:50%;border:1px solid var(--border);
-  display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:8px;color:var(--sec);background:#1c1c1c}
-.card .agent{font-family:var(--mono);font-size:9.5px;color:var(--mut)}
-.card .chk{margin-left:auto;color:var(--accent);font-size:11px;opacity:0;transition:opacity .3s}
+.card .foot{display:flex;align-items:center;gap:8px;margin-top:10px;padding-top:9px;border-top:1px solid var(--border2)}
+.card .ava{width:26px;height:26px;border-radius:50%;flex:none;object-fit:cover;
+  border:1px solid var(--border);filter:grayscale(1) contrast(1.02);background:#1c1c1c}
+.card .who{display:flex;flex-direction:column;min-width:0;line-height:1.25}
+.card .who .nm{font-size:11px;color:var(--ink);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card .who .role{font-family:var(--mono);font-size:8.5px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card .chk{margin-left:auto;color:var(--ink);font-size:11px;opacity:0;transition:opacity .3s;flex:none}
 .card.done .chk{opacity:1}
 
 /* mobile: keep ALL 4 columns visible, just tighter */
@@ -88,13 +91,14 @@ h1{font-size:20px;font-weight:600;letter-spacing:-0.02em}
   .col-h .swatch{width:5px;height:5px}
   .col-body{padding:5px}
   .card{padding:6px 6px}
-  .card .top{gap:5px;margin-bottom:4px}
-  .card .sdot{width:5px;height:5px}
-  .card .tid{font-size:7.5px}
-  .card .title{font-size:9px;-webkit-line-clamp:3;line-height:1.25}
-  .card .foot{gap:4px;margin-top:5px}
-  .card .ava{display:none}
-  .card .agent{font-size:7.5px}
+  .card .top{gap:4px;margin-bottom:4px}
+  .card .dept{font-size:6.5px;padding:1px 3px;letter-spacing:.04em}
+  .card .tid{font-size:6.5px}
+  .card .title{font-size:9px;-webkit-line-clamp:2;line-height:1.25}
+  .card .foot{gap:5px;margin-top:6px;padding-top:5px}
+  .card .ava{width:18px;height:18px}
+  .card .who .nm{font-size:8px}
+  .card .who .role{font-size:6.5px}
 }
 .steps{display:none}
 </style>
@@ -125,16 +129,29 @@ const COLS=[
   {key:'REVIEW', color:'var(--blue)'},
   {key:'DONE', color:'var(--accent)'},
 ];
-const AGENTS=[
-  {id:'project-manager', ini:'PM'},
-  {id:'developer', ini:'DV'},
-  {id:'marketer', ini:'MK'},
-  {id:'researcher', ini:'RS'},
-  {id:'assistant', ini:'AS'},
+// a full self-operating AI company: each "employee" is an AI agent with a role.
+// Real face photos (pravatar), rendered as grayscale circular avatars.
+const ROSTER=[
+  {name:'Dana Levi',    role:'General Counsel · AI',  dept:'LEGAL',     img:47},
+  {name:'Omar Haddad',  role:'Growth Lead · AI',      dept:'MARKETING', img:12},
+  {name:'Mia Chen',     role:'Staff Engineer · AI',   dept:'ENGINEERING',img:5},
+  {name:'Leo Novak',    role:'SRE Lead · AI',         dept:'DEVOPS',    img:33},
+  {name:'Sara Kohn',    role:'CISO · AI',             dept:'SECURITY',  img:16},
+  {name:'Ivan Petrov',  role:'Controller · AI',       dept:'FINANCE',   img:52},
+  {name:'Aya Tanaka',   role:'Research Lead · AI',    dept:'RESEARCH',  img:44},
+  {name:'Noah Adler',   role:'Product Manager · AI',  dept:'PRODUCT',   img:60},
 ];
-const TASKS=['classify inbound ticket','draft launch campaign','fix auth token refresh','summarize user research',
-  'build pricing section','route to Zendesk','update CRM records','generate weekly report','triage bug queue',
-  'write API docs','analyze churn cohort','prepare onboarding email','review pull request','index knowledge base'];
+// tasks that read like a company running itself, keyed to each department
+const TASKS_BY_DEPT={
+  LEGAL:      ['review SaaS vendor contract','file Agentim trademark','draft DPA for new client','redline NDA — clause 7'],
+  MARKETING:  ['draft Q3 launch campaign','A/B test pricing page','publish changelog post','plan webinar funnel'],
+  ENGINEERING:['ship agent-routing v2','fix token refresh bug','review PR #418','add rate-limit guard'],
+  DEVOPS:     ['roll out canary deploy','scale inference cluster','rotate prod secrets','tune autoscaler'],
+  SECURITY:   ['patch CVE-2026-1183','run quarterly access audit','Zero-Trust policy review','revoke stale API keys'],
+  FINANCE:    ['reconcile monthly invoices','approve cloud budget','issue client invoice #204','close the books — June'],
+  RESEARCH:   ['benchmark new model','summarize competitor launch','evaluate RAG recall','draft research memo'],
+  PRODUCT:    ['spec onboarding flow','triage feature requests','write release notes','review usage metrics'],
+};
 const SDOT=['var(--mut)','var(--amber)','var(--blue)','var(--accent)'];
 
 const colsEl=document.getElementById('cols');
@@ -199,19 +216,21 @@ function layout(animate){
 
 function makeCard(){
   const id='c'+(seq++);
-  const title=TASKS[Math.floor(Math.random()*TASKS.length)];
-  const agent=AGENTS[Math.floor(Math.random()*AGENTS.length)];
-  const tid='AG-'+Math.floor(1000+Math.random()*9000);
+  const person=ROSTER[Math.floor(Math.random()*ROSTER.length)];
+  const pool=TASKS_BY_DEPT[person.dept];
+  const title=pool[Math.floor(Math.random()*pool.length)];
+  const tid=person.dept.slice(0,3)+'-'+Math.floor(100+Math.random()*900);
   const el=document.createElement('div');
   el.className='card enter';
-  el.innerHTML=`<div class="top"><span class="sdot" style="background:${SDOT[0]}"></span><span class="tid">${tid}</span></div>
+  el.innerHTML=`<div class="top"><span class="dept">${person.dept}</span><span class="tid">${tid}</span></div>
     <div class="title">${title}</div>
-    <div class="foot"><span class="ava">${agent.ini}</span><span class="agent">${agent.id}</span><span class="chk">✓</span></div>`;
+    <div class="foot"><img class="ava" src="https://i.pravatar.cc/64?img=${person.img}" alt="" loading="eager"><span class="who"><span class="nm">${person.name}</span><span class="role">${person.role}</span></span><span class="chk">✓</span></div>`;
   layer.appendChild(el);
-  const c={id,col:0,el,title,agent:agent.id,tid,born:performance.now()+Math.random()};
+  const img=el.querySelector('.ava');
+  if(img) img.addEventListener('load',()=>layout(true),{once:true});
+  const c={id,col:0,el,title,agent:person.name,tid,born:performance.now()+Math.random()};
   cards.push(c);
   layout(false);
-  // trigger enter
   requestAnimationFrame(()=>requestAnimationFrame(()=>{ el.classList.remove('enter'); layout(true); }));
   return c;
 }
