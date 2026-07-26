@@ -1,2 +1,2 @@
-:HL["/agentim-site/_next/static/chunks/16mt6igrfozow.css","style"]
-0:{"tree":{"name":"","param":null,"prefetchHints":16,"slots":{"children":{"name":"/_not-found","param":null,"prefetchHints":0,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":0,"slots":null}}}}},"staleTime":300,"buildId":"1jzUDrev-X22QioHP96Wn"}
+:HL["/agentim-site/_next/static/chunks/1zfrla0dgqsf0.css","style"]
+0:{"tree":{"name":"","param":null,"prefetchHints":16,"slots":{"children":{"name":"/_not-found","param":null,"prefetchHints":0,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":0,"slots":null}}}}},"staleTime":300,"buildId":"RWzcpZzlrang5jPzbKF0A"}
