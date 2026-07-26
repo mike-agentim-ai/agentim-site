@@ -119,7 +119,7 @@ const COLS=['BACKLOG','IN PROGRESS','REVIEW','DONE'];
 const TEAMS={
   founders:{
     label:'Founders Office', byMike:true,
-    lead:{name:'Mike', role:'Chief of Staff · AI', img:8},
+    lead:{name:'Mike', role:'Chief of Staff · AI', img:'mike.jpg'},
     members:[
       {name:'Noa Bar-El', role:'Chief of Staff', img:31},
       {name:'Adam Roux',  role:'Ops Lead',       img:14},
@@ -174,7 +174,7 @@ const TEAMS={
   },
 };
 
-const pv=n=>`https://i.pravatar.cc/80?img=${n}`;
+const pv=n=>(typeof n==='string')?n:`https://i.pravatar.cc/80?img=${n}`;
 const rand=(a,b)=>a+Math.random()*(b-a);
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 
