@@ -177,13 +177,18 @@ function layout(animate){
     byCol[ci].sort((a,b)=>a.born-b.born);
     const r=colRect(+ci);
     if(!r) return;
+    // pass 1: lock each card's width so wrapping (and height) is correct
+    byCol[ci].forEach(c=>{ c.el.style.width=r.w+'px'; });
+    // pass 2: stack using measured real heights
+    let cursor = 0;
     byCol[ci].forEach((c,idx)=>{
-      const x=r.x, y=r.y+idx*(cardH()+gap());
+      const x=r.x, y=r.y+cursor;
+      const hh = (c.el.offsetHeight || cardH());
+      cursor += hh + gap();
       c.el.style.setProperty('--x', x+'px');
       c.el.style.setProperty('--y', y+'px');
-      c.el.style.width=r.w+'px';
       c.el.style.transform=`translate(${x}px,${y}px)`;
-      c.el.style.opacity = idx > (mobile?4:5) ? '0' : '1';
+      c.el.style.opacity = (y + hh > r.h + 4) ? '0' : '1';
       c.el.style.pointerEvents='none';
     });
     // count
