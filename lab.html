@@ -102,50 +102,38 @@ function spawnCard(delay){
   kb.cards.push({id:Math.random(), label:pick(tasks), agent:pick(AGENTS), col:0, x:0,y:0, tx:0,ty:0, born:performance.now()+delay, moveAt:performance.now()+delay+rand(1400,2600), active:false});
 }
 function drawKanban(now){
-  // responsive metrics — tighten padding/gaps/fonts as the panel narrows
-  const narrow = W < 560, tiny = W < 400;
-  const pad = tiny ? 10 : narrow ? 16 : 54;
-  const gap = tiny ? 6 : narrow ? 8 : 14;
-  const top = 54;
+  const mobile = W < 640;
+  if(mobile) return drawKanbanMobile(now);
+  return drawKanbanDesktop(now);
+}
+
+// ---- desktop: all 4 columns side by side ----
+function drawKanbanDesktop(now){
+  const pad=54, top=54, gap=14;
   const colW=(W-pad*2-gap*3)/4;
   const colH=H-top-30;
-  const cardH = tiny ? 30 : narrow ? 34 : 38;
-  const rowStep = cardH + (tiny?6:8);
-  const colFont = tiny ? 8 : narrow ? 9 : 10;
-  const labelFont = tiny ? 8.5 : narrow ? 9.5 : 10.5;
-  const agentFont = tiny ? 7.5 : 9;
-  // short column names on narrow screens so headers never clip
-  const colNames = narrow ? ['TODO','WIP','REV','DONE'] : kb.cols;
-  // columns
-  colNames.forEach((c,i)=>{
+  kb.cols.forEach((c,i)=>{
     const x=pad+i*(colW+gap);
     ctx.strokeStyle='rgba(255,255,255,0.08)'; ctx.lineWidth=1;
     rr(x,top,colW,colH,8); ctx.stroke();
     ctx.fillStyle=i===3?ACCENT:MUT;
-    ctx.font='600 '+colFont+'px JetBrains Mono'; ctx.textAlign='left';
-    ctx.fillText(c, x+(tiny?6:10), top+18);
-    ctx.fillStyle=FAINT; ctx.font='400 '+colFont+'px JetBrains Mono';
+    ctx.font='600 10px JetBrains Mono'; ctx.textAlign='left';
+    ctx.fillText(c, x+12, top+18);
+    ctx.fillStyle=FAINT; ctx.font='400 10px JetBrains Mono';
     const n=kb.cards.filter(k=>k.col===i&&now>=k.born).length;
-    ctx.textAlign='right'; ctx.fillText(String(n), x+colW-(tiny?6:10), top+18);
+    ctx.textAlign='right'; ctx.fillText(String(n), x+colW-12, top+18);
   });
-  // layout cards within columns
   const slotY={};
-  const cardInset = tiny ? 5 : 10;
   kb.cards.forEach(cd=>{
     if(now<cd.born) return;
-    const ci=cd.col;
-    slotY[ci]=(slotY[ci]||0);
-    const x=pad+ci*(colW+gap)+cardInset;
-    const y=top+32+slotY[ci]*rowStep;
-    slotY[ci]++;
+    const ci=cd.col; slotY[ci]=(slotY[ci]||0);
+    const x=pad+ci*(colW+gap)+10;
+    const y=top+34+slotY[ci]*46; slotY[ci]++;
     cd.tx=x; cd.ty=y;
     if(cd.x===0&&cd.y===0){cd.x=x;cd.y=y;}
     cd.x+=(cd.tx-cd.x)*0.12; cd.y+=(cd.ty-cd.y)*0.12;
-    // advance
     if(now>=cd.moveAt && cd.col<3){ cd.col++; cd.moveAt=now+rand(1500,2800); cd.active=true; setTimeout(()=>cd.active=false,500); }
-    // draw card
-    const w=colW-cardInset*2, h=cardH;
-    const done=cd.col===3;
+    const w=colW-20, h=38, done=cd.col===3;
     ctx.save();
     if(cd.active){ctx.shadowColor=ACCENT;ctx.shadowBlur=12;}
     ctx.fillStyle=done?'rgba(228,0,20,0.06)':'rgba(255,255,255,0.03)';
@@ -153,27 +141,89 @@ function drawKanban(now){
     ctx.strokeStyle=cd.active?ACCENT:(done?'rgba(228,0,20,0.4)':'rgba(255,255,255,0.14)');
     ctx.lineWidth=1; rr(cd.x,cd.y,w,h,6); ctx.stroke();
     ctx.restore();
-    // status dot
-    const dotX = cd.x + (tiny?7:12);
     ctx.fillStyle=done?ACCENT:(cd.col===1?'#e4a000':cd.col===2?'#3b82c4':MUT);
-    ctx.beginPath();ctx.arc(dotX,cd.y+(tiny?10:13),tiny?2.4:3,0,7);ctx.fill();
-    const textX = dotX + (tiny?8:10);
-    const avail = w-(textX-cd.x)-4;
-    if(tiny){
-      // one compact line: just the agent name (label would be unreadable this small)
-      ctx.fillStyle=SEC;ctx.font='500 '+agentFont+'px JetBrains Mono';ctx.textAlign='left';
-      ctx.fillText(cd.agent.slice(0,Math.floor(avail/4.6)), textX, cd.y+h/2+3);
-    } else {
-      ctx.fillStyle=SEC;ctx.font='500 '+labelFont+'px Inter';ctx.textAlign='left';
-      ctx.fillText(cd.label.slice(0,Math.max(3,Math.floor(avail/5.4))), textX, cd.y+15);
-      ctx.fillStyle=FAINT;ctx.font='400 '+agentFont+'px JetBrains Mono';
-      ctx.fillText(cd.agent.slice(0,Math.max(3,Math.floor(avail/5))), textX, cd.y+27);
-    }
+    ctx.beginPath();ctx.arc(cd.x+12,cd.y+13,3,0,7);ctx.fill();
+    ctx.fillStyle=SEC;ctx.font='500 10.5px Inter';ctx.textAlign='left';
+    ctx.fillText(cd.label.slice(0,Math.floor(w/6.2)), cd.x+22, cd.y+16);
+    ctx.fillStyle=FAINT;ctx.font='400 9px JetBrains Mono';
+    ctx.fillText(cd.agent, cd.x+22, cd.y+29);
   });
-  // recycle done cards & keep spawning; fewer cards on small panels
-  const cap = tiny ? 7 : narrow ? 9 : 11;
   kb.cards=kb.cards.filter(cd=> !(cd.col===3 && now-cd.moveAt>1600 && now>cd.born));
-  if(now>kb.spawn){ kb.spawn=now+rand(1400,2400); if(kb.cards.length<cap) spawnCard(0); }
+  if(now>kb.spawn){ kb.spawn=now+rand(1400,2400); if(kb.cards.length<11) spawnCard(0); }
+}
+
+// ---- mobile: ONE full-width column at a time, auto-rotating through the flow ----
+function drawKanbanMobile(now){
+  // which column is on screen — cycle every 2.4s
+  if(!kb.view){ kb.view=0; kb.viewNext=now+2400; }
+  if(now>kb.viewNext){ kb.view=(kb.view+1)%4; kb.viewNext=now+2400; kb.slideT=now; }
+  const vi=kb.view;
+  const pad=18, top=58;
+  const colW=W-pad*2, colH=H-top-26;
+
+  // step indicator: four pills, active one red
+  const pillW=(colW-3*8)/4;
+  kb.cols.forEach((c,i)=>{
+    const px=pad+i*(pillW+8);
+    ctx.strokeStyle=i===vi?ACCENT:'rgba(255,255,255,0.14)';ctx.lineWidth=1;
+    rr(px,top-30,pillW,4,2); ctx.fillStyle=i===vi?ACCENT:'rgba(255,255,255,0.08)'; ctx.fill();
+  });
+
+  // active column frame + header
+  ctx.strokeStyle='rgba(255,255,255,0.1)';ctx.lineWidth=1; rr(pad,top,colW,colH,10); ctx.stroke();
+  const names=['BACKLOG','IN PROGRESS','REVIEW','DONE'];
+  ctx.fillStyle=vi===3?ACCENT:SEC;ctx.font='600 12px JetBrains Mono';ctx.textAlign='left';
+  ctx.fillText(names[vi], pad+16, top+26);
+  ctx.fillStyle=FAINT;ctx.font='400 10px JetBrains Mono';ctx.textAlign='left';
+  ctx.fillText('step '+(vi+1)+'/4', pad+16, top+42);
+  const shown=kb.cards.filter(k=>k.col===vi&&now>=k.born);
+  ctx.textAlign='right';ctx.fillStyle=FAINT;ctx.font='400 11px JetBrains Mono';
+  ctx.fillText(shown.length+' tasks', pad+colW-16, top+26);
+
+  // slide-in transition
+  const slide=kb.slideT?Math.min(1,(now-kb.slideT)/280):1;
+  const dx=(1-slide)*24;
+
+  // advance all cards through the flow in the background (so counts stay live)
+  kb.cards.forEach(cd=>{
+    if(now<cd.born) return;
+    if(now>=cd.moveAt && cd.col<3){ cd.col++; cd.moveAt=now+rand(1600,2800); cd.active=true; setTimeout(()=>cd.active=false,500); }
+  });
+
+  // draw the visible column's cards, big and readable
+  ctx.save();
+  ctx.beginPath();rr(pad+1,top+50,colW-2,colH-52,8);ctx.clip();
+  shown.slice(0,5).forEach((cd,idx)=>{
+    const cx=pad+14+dx, cy=top+60+idx*58;
+    const w=colW-28, h=48, done=vi===3;
+    ctx.globalAlpha=slide;
+    ctx.save();
+    if(cd.active){ctx.shadowColor=ACCENT;ctx.shadowBlur=14;}
+    ctx.fillStyle=done?'rgba(228,0,20,0.07)':'rgba(255,255,255,0.035)';
+    rr(cx,cy,w,h,8); ctx.fill();
+    ctx.strokeStyle=cd.active?ACCENT:(done?'rgba(228,0,20,0.45)':'rgba(255,255,255,0.16)');
+    ctx.lineWidth=1; rr(cx,cy,w,h,8); ctx.stroke();
+    ctx.restore();
+    ctx.fillStyle=done?ACCENT:(vi===1?'#e4a000':vi===2?'#3b82c4':MUT);
+    ctx.beginPath();ctx.arc(cx+16,cy+17,3.5,0,7);ctx.fill();
+    ctx.fillStyle=INK;ctx.font='500 13px Inter';ctx.textAlign='left';
+    ctx.fillText(cd.label.slice(0,Math.floor((w-40)/6.6)), cx+28, cy+20);
+    ctx.fillStyle=FAINT;ctx.font='400 10.5px JetBrains Mono';
+    ctx.fillText(cd.agent, cx+28, cy+36);
+    ctx.globalAlpha=1;
+  });
+  if(shown.length===0){
+    ctx.fillStyle=FAINT;ctx.font='400 11px JetBrains Mono';ctx.textAlign='center';
+    ctx.fillText('— waiting for tasks —', pad+colW/2, top+colH/2);
+  }
+  ctx.restore();
+
+  // caption
+  ctx.fillStyle=FAINT;ctx.font='400 10px JetBrains Mono';ctx.textAlign='center';
+  ctx.fillText('tasks flow through every stage', W/2, H-16);
+
+  kb.cards=kb.cards.filter(cd=> !(cd.col===3 && now-cd.moveAt>2400 && now>cd.born));
+  if(now>kb.spawn){ kb.spawn=now+rand(1500,2500); if(kb.cards.length<9) spawnCard(0); }
 }
 
 // ==========================================================
