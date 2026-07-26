@@ -78,16 +78,23 @@ h1{font-size:20px;font-weight:600;letter-spacing:-0.02em}
 .card .chk{margin-left:auto;color:var(--accent);font-size:11px;opacity:0;transition:opacity .3s}
 .card.done .chk{opacity:1}
 
-/* mobile: single rotating column */
+/* mobile: keep ALL 4 columns visible, just tighter */
 @media (max-width:640px){
-  body{padding:16px}
-  .board{padding:16px}
-  .cols{grid-template-columns:1fr}
-  .col{display:none}
-  .col.active{display:flex}
-  .steps{position:absolute;top:46px;left:16px;right:16px;display:flex;gap:6px;z-index:16}
-  .steps .pill{flex:1;height:4px;border-radius:2px;background:rgba(255,255,255,.1)}
-  .steps .pill.on{background:var(--accent)}
+  body{padding:12px}
+  .board{padding:10px}
+  .cols{gap:6px}
+  .col-h{padding:8px 6px 7px;font-size:8px;letter-spacing:.02em}
+  .col-h .name{gap:4px}
+  .col-h .swatch{width:5px;height:5px}
+  .col-body{padding:5px}
+  .card{padding:6px 6px}
+  .card .top{gap:5px;margin-bottom:4px}
+  .card .sdot{width:5px;height:5px}
+  .card .tid{font-size:7.5px}
+  .card .title{font-size:9px;-webkit-line-clamp:3;line-height:1.25}
+  .card .foot{gap:4px;margin-top:5px}
+  .card .ava{display:none}
+  .card .agent{font-size:7.5px}
 }
 .steps{display:none}
 </style>
@@ -138,17 +145,16 @@ let seq=1000;
 let mobile=window.innerWidth<=640;
 let mView=0;
 
-// build column shells
+// build column shells (all 4 always visible)
 function buildCols(){
   colsEl.innerHTML='';
   COLS.forEach((c,i)=>{
     const col=document.createElement('div');
-    col.className='col'+(mobile&&i===mView?' active':'');
+    col.className='col';
     col.dataset.i=i;
     col.innerHTML=`<div class="col-h"><span class="name"><span class="swatch"></span>${c.key}</span><span class="count" data-c="${i}">0</span></div><div class="col-body"></div>`;
     colsEl.appendChild(col);
   });
-  stepsEl.innerHTML=COLS.map((_,i)=>`<span class="pill${i===mView?' on':''}"></span>`).join('');
 }
 
 function colRect(i){
@@ -160,7 +166,8 @@ function colRect(i){
   return {x:br.left-lr.left, y:br.top-lr.top, w:br.width, h:br.height};
 }
 
-const CARD_H=mobile?60:74, GAP=10;
+function cardH(){ return mobile?48:74; }
+function gap(){ return mobile?6:10; }
 
 function layout(animate){
   // group by column, order by slot
@@ -171,13 +178,12 @@ function layout(animate){
     const r=colRect(+ci);
     if(!r) return;
     byCol[ci].forEach((c,idx)=>{
-      const visible = !mobile || +ci===mView;
-      const x=r.x, y=r.y+idx*(CARD_H+GAP);
+      const x=r.x, y=r.y+idx*(cardH()+gap());
       c.el.style.setProperty('--x', x+'px');
       c.el.style.setProperty('--y', y+'px');
       c.el.style.width=r.w+'px';
       c.el.style.transform=`translate(${x}px,${y}px)`;
-      c.el.style.opacity = visible ? (idx> (mobile?4:5) ? '0' : '1') : '0';
+      c.el.style.opacity = idx > (mobile?4:5) ? '0' : '1';
       c.el.style.pointerEvents='none';
     });
     // count
@@ -240,18 +246,7 @@ function tick(){
   setTimeout(tick, 700+Math.random()*700);
 }
 
-// mobile column rotation
-function rotate(){
-  if(mobile){
-    mView=(mView+1)%4;
-    buildCols();
-    layout(true);
-  }
-  setTimeout(rotate, 2600);
-}
-
 function onResize(){
-  const wasMobile=mobile;
   mobile=window.innerWidth<=640;
   buildCols();
   layout(true);
@@ -264,7 +259,6 @@ for(let i=0;i<6;i++){ const c=makeCard(); c.col=Math.floor(Math.random()*3); c.e
 layout(false);
 setTimeout(()=>layout(true), 60);
 setTimeout(tick, 900);
-setTimeout(rotate, 2600);
 </script>
 </body>
 </html>
