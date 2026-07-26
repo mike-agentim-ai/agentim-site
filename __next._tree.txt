@@ -1,4 +1,4 @@
-:HL["/agentim-site/_next/static/chunks/0544_jd8-f5yg.css","style"]
+:HL["/agentim-site/_next/static/chunks/1mt54vw9sdq3r.css","style"]
 :HC["/",""]
 :HL["/agentim-site/mike.jpg","image"]
 :HL["https://i.pravatar.cc/80?img=12","image"]
@@ -13,4 +13,4 @@
 :HL["https://i.pravatar.cc/80?img=16","image"]
 :HL["https://i.pravatar.cc/80?img=47","image"]
 :HL["https://i.pravatar.cc/80?img=60","image"]
-0:{"tree":{"name":"","param":null,"prefetchHints":16,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":0,"slots":null}}},"staleTime":300,"buildId":"b8m2fIxL8LsHo4G2yvqcx"}
+0:{"tree":{"name":"","param":null,"prefetchHints":16,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":0,"slots":null}}},"staleTime":300,"buildId":"sRPb438tx18rpFMtRsFe6"}
