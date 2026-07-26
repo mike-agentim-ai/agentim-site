@@ -1,3 +1,3 @@
-:HL["/agentim-site/_next/static/chunks/36iixhlzqpncm.css","style"]
+:HL["/agentim-site/_next/static/chunks/0k32un397t1pj.css","style"]
 :HC["/",""]
-0:{"tree":{"name":"","param":null,"prefetchHints":16,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":0,"slots":null}}},"staleTime":300,"buildId":"e04keXiKwxkdpwzBcNfeW"}
+0:{"tree":{"name":"","param":null,"prefetchHints":16,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":0,"slots":null}}},"staleTime":300,"buildId":"wBVOJsszXUbzwQCHe98YP"}
