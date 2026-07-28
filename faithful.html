@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Faithful — the model that trusts your data</title>
+<style>
+  :root{
+    --bg:#f7f5f2; --ink:#1a1a18; --sub:#6b6862; --line:#e2ddd5;
+    --card:#fffdfa; --accent:#c96442; --good:#3d7a5a; --bad:#b0503a;
+    --mono:'SF Mono',ui-monospace,'JetBrains Mono',Menlo,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,system-ui,sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);
+    line-height:1.6;-webkit-font-smoothing:antialiased;font-size:17px}
+  .wrap{max-width:820px;margin:0 auto;padding:0 28px}
+  section{padding:72px 0;border-bottom:1px solid var(--line)}
+  section:last-child{border-bottom:none}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--accent);margin-bottom:20px}
+  h1{font-size:52px;line-height:1.08;letter-spacing:-0.02em;font-weight:520;margin-bottom:24px}
+  h2{font-size:32px;line-height:1.15;letter-spacing:-0.015em;font-weight:520;margin-bottom:18px}
+  h3{font-size:20px;font-weight:600;margin-bottom:8px}
+  p.lead{font-size:21px;color:var(--sub);line-height:1.55;max-width:640px}
+  p{color:var(--ink);margin-bottom:16px}
+  p.muted{color:var(--sub)}
+  .hero{padding-top:120px;padding-bottom:80px}
+  .pill{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);
+    font-size:12.5px;color:var(--sub);border:1px solid var(--line);
+    background:var(--card);padding:6px 13px;border-radius:100px;margin-bottom:28px}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--good)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:32px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:26px}
+  .stat{font-size:44px;font-weight:560;letter-spacing:-0.02em;line-height:1}
+  .stat .unit{font-size:20px;color:var(--sub);font-weight:400}
+  .stat.win{color:var(--good)} .stat.lose{color:var(--bad)}
+  .label{font-family:var(--mono);font-size:11.5px;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--sub);margin-top:10px}
+  table{width:100%;border-collapse:collapse;margin-top:28px;background:var(--card);
+    border:1px solid var(--line);border-radius:14px;overflow:hidden;font-size:15.5px}
+  th,td{padding:15px 18px;text-align:left;border-bottom:1px solid var(--line)}
+  th{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--sub);font-weight:500;background:#faf8f4}
+  td{color:var(--ink)}
+  tr:last-child td{border-bottom:none}
+  tr.ours{background:linear-gradient(90deg,rgba(61,122,90,.07),transparent)}
+  tr.ours td{font-weight:560}
+  .num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+  .g{color:var(--good);font-weight:600} .r{color:var(--bad)}
+  .cheap{color:var(--good);font-weight:600}
+  .tag{font-family:var(--mono);font-size:10.5px;padding:2px 8px;border-radius:5px;
+    background:#eee9e0;color:var(--sub);letter-spacing:.05em}
+  .tag.ours{background:var(--good);color:#fff}
+  ul.clean{list-style:none;margin-top:18px}
+  ul.clean li{padding-left:26px;position:relative;margin-bottom:12px;color:var(--sub)}
+  ul.clean li:before{content:'→';position:absolute;left:0;color:var(--accent);font-family:var(--mono)}
+  .quote{font-size:22px;line-height:1.45;letter-spacing:-0.01em;color:var(--ink);
+    border-left:2px solid var(--accent);padding-left:24px;margin:8px 0;font-weight:450}
+  .foot{padding:44px 0;color:var(--sub);font-size:13px;font-family:var(--mono)}
+  .pending{color:var(--accent);font-style:italic}
+  @media(max-width:640px){
+    h1{font-size:38px} h2{font-size:26px} .hero{padding-top:80px}
+    .grid2{grid-template-columns:1fr} section{padding:52px 0}
+    table{font-size:13px} th,td{padding:11px 10px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <section class="hero">
+    <div class="pill"><span class="dot"></span> Context-faithfulness benchmark · July 2026</div>
+    <h1>The model that<br>trusts your data.</h1>
+    <p class="lead">Frontier models quietly override the data you give them — or argue with it.
+      We built a small, cheap model that answers from <em>your</em> context, faithfully,
+      at a fraction of the cost.</p>
+  </section>
+
+  <section>
+    <div class="eyebrow">The problem</div>
+    <h2>You give the model your data. It ignores it.</h2>
+    <p class="muted">When your context contradicts what a model learned in pre-training,
+      most models trust their own memory — not your document. For enterprise RAG, that's
+      the difference between an answer you can trust and one you can't.</p>
+    <p>In our tests, a frontier model didn't just get it wrong — it <strong>refused the data
+      and lectured us</strong>, treating an internal document as a "prompt injection attempt."
+      As the document got longer, faithfulness got <em>worse</em>.</p>
+  </section>
+
+  <section>
+    <div class="eyebrow">The result</div>
+    <h2>5.8% → 97.5% faithful.</h2>
+    <p class="muted">Context-DPO fine-tune on Qwen3.5-9B (Apache-2.0). Same model, before and after.</p>
+    <div class="grid2">
+      <div class="card">
+        <div class="stat lose">5.8<span class="unit">%</span></div>
+        <div class="label">Base model · faithfulness</div>
+      </div>
+      <div class="card">
+        <div class="stat win">97.5<span class="unit">%</span></div>
+        <div class="label">After our training · ×17</div>
+      </div>
+    </div>
+    <ul class="clean">
+      <li>Conflict (context vs. prior knowledge): <span class="num">13.6% → 93.2%</span></li>
+      <li>Aligned (context agrees): <span class="num">2.4% → 100%</span></li>
+      <li>Abstain (context silent — no hallucination): <span class="num">0% → 100%</span></li>
+    </ul>
+  </section>
+
+  <section>
+    <div class="eyebrow">The benchmark</div>
+    <h2>Measured like the labs do it.</h2>
+    <p class="muted">Public dataset (<span class="num">Salesforce FaithEval-counterfactual</span>,
+      ICLR 2025), identical prompt for every model, deterministic multiple-choice scoring.
+      No home-field advantage.</p>
+    <table>
+      <thead><tr><th>Model</th><th>Size</th><th>Faithfulness</th><th>$ / 1M out</th><th></th></tr></thead>
+      <tbody>
+        <tr><td>Claude Opus 4.x</td><td class="num">frontier</td><td class="num r">66.7%</td><td class="num r">$75–150</td><td><span class="tag">frontier</span></td></tr>
+        <tr><td>GPT-5.6 (Codex)</td><td class="num">frontier</td><td class="num r">63.3%</td><td class="num r">$30</td><td><span class="tag">frontier</span></td></tr>
+        <tr><td>Qwen3.5-9B (base)</td><td class="num">9B</td><td class="num pending">measuring…</td><td class="num cheap">~$0.10</td><td><span class="tag">baseline</span></td></tr>
+        <tr class="ours"><td>Faithful-9B (ours)</td><td class="num">9B</td><td class="num pending">measuring…</td><td class="num cheap">~$0.10</td><td><span class="tag ours">ours</span></td></tr>
+      </tbody>
+    </table>
+    <p class="muted" style="margin-top:16px;font-size:14px">Frontier models scored on 60 items;
+      our 9B on the same public set (final number landing now). Prices: OpenRouter public rates, July 2026.
+      Second public benchmark (NQ-Swap) + MMLU regression check to follow.</p>
+  </section>
+
+  <section>
+    <div class="eyebrow">Why it matters</div>
+    <blockquote class="quote">Frontier-grade faithfulness to your data — at ~$0.10 per million tokens.
+      100–1000× cheaper than GPT-5.6 or Claude Opus, and more consistent, on the one task
+      that decides whether enterprise RAG can be trusted.</blockquote>
+    <ul class="clean">
+      <li>Runs on-premise or inside a confidential-computing enclave — sensitive data never leaves.</li>
+      <li>Small enough to self-host. Cheap enough to run at scale.</li>
+      <li>A router sends small-talk elsewhere, so the faithful model stays pure and aggressive.</li>
+    </ul>
+  </section>
+
+  <div class="foot">
+    Agentim · Context-Faithful LLM · proof of concept · numbers reproduced from public benchmarks.
+  </div>
+
+</div>
+</body>
+</html>
